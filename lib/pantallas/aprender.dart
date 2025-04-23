@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/bottom_nav.dart';
+import 'app_drawer.dart';
 
 class AprenderScreen extends StatelessWidget {
   const AprenderScreen({super.key});
@@ -7,35 +8,43 @@ class AprenderScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AppDrawer(),
       backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        backgroundColor: Colors.grey[200],
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'lib/imagenes/logo.png',
+              height: 40,
+            ),
+            const SizedBox(width: 10),
+            const Text(
+              'PictoPlan',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
+        centerTitle: true,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.black87, size: 30),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+      ),
       bottomNavigationBar: const BottomNavBar(currentIndex: 2),
+
       body: Column(
         children: [
-          // CABECERA
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: Colors.grey[200],
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Image.asset(
-                  'lib/imagenes/logo.png',
-                  height: 50,
-                ),
-                const Text(
-                  'PictoPlan',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const Icon(Icons.menu, size: 35),
-              ],
-            ),
-          ),
-
-          // CONTENIDO PRINCIPAL
           Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
@@ -84,7 +93,7 @@ class AprenderScreen extends StatelessWidget {
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
                             _buildOption('enfadada', Colors.yellowAccent),
-                            _buildOption('cansada', Colors.lightGreen),
+                            _buildOption('cansada', Colors.deepPurpleAccent),
                           ],
                         ),
                       ],
@@ -101,7 +110,7 @@ class AprenderScreen extends StatelessWidget {
 
   // Botón de opción estilizado
   Widget _buildOption(String text, Color color) {
-    return Container(
+    return SizedBox(
       width: 150,
       height: 70,
       child: ElevatedButton(

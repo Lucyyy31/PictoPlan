@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../widgets/bottom_nav.dart';
+import 'app_drawer.dart';
 
 class DiarioScreen extends StatelessWidget {
   const DiarioScreen({super.key});
@@ -7,41 +8,48 @@ class DiarioScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      drawer: const AppDrawer(),
       backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        backgroundColor: Colors.grey[200],
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset(
+              'lib/imagenes/logo.png',
+              height: 40,
+            ),
+            const SizedBox(width: 10),
+            const Text(
+              'PictoPlan',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
+        centerTitle: true,
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.black87, size: 30),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
+      ),
       bottomNavigationBar: const BottomNavBar(currentIndex: 1),
       body: Column(
         children: [
-          // CABECERA
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: Colors.grey[200],
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Image.asset(
-                  'lib/imagenes/logo.png',
-                  height: 50,
-                ),
-                const Text(
-                  'PictoPlan',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const Icon(Icons.menu, size: 35),
-              ],
-            ),
-          ),
-
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  // TÍTULO
                   const Text(
                     'Eventos importantes',
                     style: TextStyle(
@@ -51,7 +59,6 @@ class DiarioScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
 
-                  // BOTÓN AÑADIR EVENTO
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
@@ -62,7 +69,9 @@ class DiarioScreen extends StatelessWidget {
                       foregroundColor: Colors.black,
                       elevation: 2,
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      // lógica para añadir evento
+                    },
                     icon: const Icon(Icons.add),
                     label: const Text(
                       'Añadir evento',
@@ -72,15 +81,15 @@ class DiarioScreen extends StatelessWidget {
                   const SizedBox(height: 30),
 
                   // EVENTOS
-                  EventCard(
+                  const EventCard(
                     date: '04 / 03 / 2025',
                     description: 'Visita a los abuelos',
                   ),
-                  EventCard(
+                  const EventCard(
                     date: '25 / 02 / 2025',
                     description: 'Hice un dibujo',
                   ),
-                  EventCard(
+                  const EventCard(
                     date: '14 / 11 / 2024',
                     description: 'Comí mi comida favorita',
                   ),
@@ -117,7 +126,7 @@ class EventCard extends StatelessWidget {
           BoxShadow(
             color: Colors.black12,
             blurRadius: 4,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           )
         ],
       ),
