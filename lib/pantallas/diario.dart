@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/bottom_nav.dart';
 import 'app_drawer.dart';
+import 'entrada_diario.dart';
 
 class DiarioScreen extends StatelessWidget {
   const DiarioScreen({super.key});
@@ -70,7 +71,10 @@ class DiarioScreen extends StatelessWidget {
                       elevation: 2,
                     ),
                     onPressed: () {
-                      // lógica para añadir evento
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AddEntryScreen()),
+                      );
                     },
                     icon: const Icon(Icons.add),
                     label: const Text(
