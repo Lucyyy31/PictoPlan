@@ -10,27 +10,61 @@ class AppDrawer extends StatelessWidget {
       child: ListView(
         padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 20),
         children: [
-          ListTile(
-            leading: const Icon(Icons.notifications_outlined),
-            title: const Text('Notificaciones'),
-            onTap: () {},
+          _buildDrawerItem(
+            icon: Icons.notifications_outlined,
+            text: 'Notificaciones',
+            onTap: () {
+              Navigator.pushNamed(context, '/notificaciones');
+            },
           ),
-          ListTile(
-            leading: const Icon(Icons.settings_outlined),
-            title: const Text('Configuración'),
-            onTap: () {},
+          _buildDrawerItem(
+            icon: Icons.settings_outlined,
+            text: 'Configuración',
+            onTap: () {
+              Navigator.pushNamed(context, '/configuracion');
+            },
           ),
-          ListTile(
-            leading: const Icon(Icons.info_outline),
-            title: const Text('Ayuda'),
-            onTap: () {},
+          _buildDrawerItem(
+            icon: Icons.info_outline,
+            text: 'Ayuda',
+            onTap: () {
+              Navigator.pushNamed(context, '/ayuda');
+            },
           ),
-          ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text('Salir'),
-            onTap: () {},
+          _buildDrawerItem(
+            icon: Icons.logout,
+            text: 'Salir',
+            onTap: () {
+              // Cierra el drawer primero
+              Navigator.pop(context);
+              // Luego reemplaza la ruta por login (elimina historial anterior)
+              Navigator.pushReplacementNamed(context, '/login');
+            },
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required String text,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 24),
+      child: GestureDetector(
+        onTap: onTap,
+        child: Row(
+          children: [
+            Icon(icon, size: 28, color: Colors.black),
+            const SizedBox(width: 16),
+            Text(
+              text,
+              style: const TextStyle(fontSize: 18, color: Colors.black),
+            ),
+          ],
+        ),
       ),
     );
   }
