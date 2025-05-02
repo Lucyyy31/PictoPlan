@@ -1,10 +1,64 @@
 import 'package:flutter/material.dart';
-import '../widgets/bottom_nav.dart';
+import '../database_helper.dart';
 import 'app_drawer.dart';
-import 'add_pictogram.dart';
+import 'datosTarea.dart';
+import '../widgets/bottom_nav.dart';
+import '../session.dart'; // Importamos la clase Session para acceder al correo
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  _HomeScreenState createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  late DatabaseHelper _databaseHelper;
+  List<RoutineData> routines = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _databaseHelper = DatabaseHelper();
+    _loadUserRutinas();
+  }
+
+  // Método para cargar las rutinas asociadas al usuario actual
+  Future<void> _loadUserRutinas() async {
+    String correoUsuario = Session.correoUsuario;
+
+    final usuarios = await _databaseHelper.getUsuarios();
+    final usuarioData = usuarios.firstWhere(
+          (user) => user['correoElectronico'] == correoUsuario,
+      orElse: () => {},
+    );
+
+    if (usuarioData.isNotEmpty) {
+      final idUsuario = usuarioData['id'];
+      final rutinas = await _databaseHelper.getRutinasPorUsuario(idUsuario);
+
+      setState(() {
+        routines = rutinas
+            .where((rutina) => rutina['fecha'] == _getFormattedDate())
+            .map((rutina) => RoutineData(
+          name: rutina['nombre'],
+          time: rutina['hora'],
+          completed: rutina['completado'] == 1,
+        ))
+            .toList();
+      });
+    }
+  }
+
+  // Método para obtener la fecha actual en formato 'DD-MM-YYYY'
+  String _getFormattedDate() {
+    final now = DateTime.now();
+    final day = now.day.toString().padLeft(2, '0');
+    final month = now.month.toString().padLeft(2, '0');
+    final year = now.year.toString();
+
+    return '$day-$month-$year'; // Formato 'DD-MM-YYYY'
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,18 +73,11 @@ class HomeScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset(
-              'lib/imagenes/logo.png',
-              height: 40,
-            ),
+            Image.asset('lib/imagenes/logo.png', height: 40),
             const SizedBox(width: 10),
             const Text(
               'PictoPlan',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
             ),
           ],
         ),
@@ -50,21 +97,12 @@ class HomeScreen extends StatelessWidget {
               padding: const EdgeInsets.all(24),
               child: Column(
                 children: [
-                  const Text(
-                    'Tu rutina',
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  const Text('Tu rutina', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 20),
-
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(30),
-                      ),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                       backgroundColor: Colors.white,
                       foregroundColor: Colors.black,
                       elevation: 2,
@@ -72,7 +110,13 @@ class HomeScreen extends StatelessWidget {
                     onPressed: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const AddPictogramaScreen()),
+                        MaterialPageRoute(
+                          builder: (context) => DatosTareaScreen(
+                            tareaNombre: '',
+                            correoUsuario: Session.correoUsuario,
+                            onTareaAgregada: _loadUserRutinas,
+                          ),
+                        ),
                       );
                     },
                     icon: const Icon(Icons.add),
@@ -82,13 +126,20 @@ class HomeScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 30),
-
-                  // Lista de rutinas
-                  RoutineItem(name: 'Despertarse', time: '07:30', completed: true),
-                  RoutineItem(name: 'Ir al baño', time: '07:35', completed: true),
-                  RoutineItem(name: 'Desayunar', time: '07:45', completed: true),
-                  RoutineItem(name: 'Vestirse', time: '08:20', completed: false),
-                  RoutineItem(name: 'Ir al colegio', time: '8:45', completed: false),
+                  routines.isNotEmpty
+                      ? Column(
+                    children: routines.map((routine) => RoutineItem(
+                      name: routine.name,
+                      time: routine.time,
+                      completed: routine.completed,
+                      onDelete: () {
+                        setState(() {
+                          routines.remove(routine);
+                        });
+                      },
+                    )).toList(),
+                  )
+                      : const Text('Todavía no tienes tareas en tu rutina.', style: TextStyle(fontSize: 18, fontStyle: FontStyle.italic)),
                 ],
               ),
             ),
@@ -99,16 +150,26 @@ class HomeScreen extends StatelessWidget {
   }
 }
 
+class RoutineData {
+  final String name;
+  final String time;
+  final bool completed;
+
+  RoutineData({required this.name, required this.time, this.completed = false});
+}
+
 class RoutineItem extends StatelessWidget {
   final String name;
   final String time;
   final bool completed;
+  final VoidCallback onDelete;
 
   const RoutineItem({
     super.key,
     required this.name,
     required this.time,
     this.completed = false,
+    required this.onDelete,
   });
 
   @override
@@ -125,12 +186,11 @@ class RoutineItem extends StatelessWidget {
             color: Colors.black12,
             blurRadius: 4,
             offset: const Offset(0, 2),
-          )
+          ),
         ],
       ),
       child: Row(
         children: [
-          // Imagen simulada
           Container(
             width: 50,
             height: 50,
@@ -142,38 +202,21 @@ class RoutineItem extends StatelessWidget {
             child: const Icon(Icons.image, color: Colors.white),
           ),
           const SizedBox(width: 10),
-
-          // Nombre y hora
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  name,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
+                Text(name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                 const SizedBox(height: 4),
-                Text(
-                  time,
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
+                Text(time, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ],
             ),
           ),
-
-          // Checkbox de completado
-          Checkbox(
-            value: completed,
-            onChanged: (value) {
-              // lógica para marcar completado
-            },
-          ),
-
-          // Íconos editar y borrar
+          Checkbox(value: completed, onChanged: (value) {}),
           const SizedBox(width: 10),
           const Icon(Icons.edit, size: 20),
           const SizedBox(width: 10),
-          const Icon(Icons.delete, size: 20),
+          IconButton(icon: const Icon(Icons.delete, size: 20), onPressed: onDelete),
         ],
       ),
     );

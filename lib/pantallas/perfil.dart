@@ -1,36 +1,62 @@
 import 'package:flutter/material.dart';
 import '../widgets/bottom_nav.dart';
 import 'app_drawer.dart';
+import '../database_helper.dart';
+import '../session.dart';
 
-class PerfilScreen extends StatelessWidget {
+class PerfilScreen extends StatefulWidget {
   const PerfilScreen({super.key});
+
+  @override
+  State<PerfilScreen> createState() => _PerfilScreenState();
+}
+
+class _PerfilScreenState extends State<PerfilScreen> {
+  String usuario = '';
+  String email = '';
+  String contrasena = '';
+  final dbHelper = DatabaseHelper();
+
+  @override
+  void initState() {
+    super.initState();
+    _cargarDatosUsuario();
+  }
+
+  Future<void> _cargarDatosUsuario() async {
+    if (Session.correoUsuario == null) return;
+
+    final usuarios = await dbHelper.getUsuarios();
+    final user = usuarios.firstWhere(
+          (u) => u['correoElectronico'] == Session.correoUsuario,
+      orElse: () => {},
+    );
+
+    if (user.isNotEmpty) {
+      setState(() {
+        usuario = user['nombreUsuario'];
+        email = user['correoElectronico'];
+        contrasena = user['contrasena'];
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      drawer: const AppDrawer(), // Drawer funcional
+      drawer: const AppDrawer(),
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
         backgroundColor: Colors.grey[200],
         elevation: 0,
-        automaticallyImplyLeading: false, // quitamos el back automático
+        automaticallyImplyLeading: false,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            Image.asset(
-              'lib/imagenes/logo.png',
-              height: 40,
-            ),
+            Image.asset('lib/imagenes/logo.png', height: 40),
             const SizedBox(width: 10),
-            const Text(
-              'PictoPlan',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.black87,
-              ),
-            ),
+            const Text('PictoPlan', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87)),
           ],
         ),
         centerTitle: true,
@@ -41,9 +67,7 @@ class PerfilScreen extends StatelessWidget {
           ),
         ),
       ),
-
       bottomNavigationBar: const BottomNavBar(currentIndex: 3),
-
       body: Column(
         children: [
           Expanded(
@@ -51,19 +75,13 @@ class PerfilScreen extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
               child: Column(
                 children: [
-                  // FOTO DE PERFIL CON IMAGEN POR DEFECTO
                   Center(
                     child: Stack(
                       children: [
                         CircleAvatar(
                           radius: 90,
                           backgroundColor: Colors.blue[100],
-                          backgroundImage: null, // Aquí iría una imagen si se carga
-                          child: const Icon(
-                            Icons.person,
-                            size: 110,
-                            color: Colors.white70,
-                          ),
+                          child: const Icon(Icons.person, size: 110, color: Colors.white70),
                         ),
                         Positioned(
                           bottom: 0,
@@ -76,9 +94,7 @@ class PerfilScreen extends StatelessWidget {
                             ),
                             child: IconButton(
                               icon: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
-                              onPressed: () {
-                                // lógica para cambiar la imagen
-                              },
+                              onPressed: () {},
                             ),
                           ),
                         ),
@@ -86,13 +102,11 @@ class PerfilScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: 30),
-
-                  // CAMPOS REDUCIDOS ESTÁTICOS
-                  _buildInfoField(label: 'Usuario', value: 'User10'),
+                  _buildInfoField(label: 'Usuario', value: usuario),
                   const SizedBox(height: 12),
-                  _buildInfoField(label: 'Email', value: 'user.10@gmail.com'),
+                  _buildInfoField(label: 'Email', value: email),
                   const SizedBox(height: 12),
-                  _buildInfoField(label: 'Contraseña', value: '12345678'),
+                  _buildInfoField(label: 'Contraseña', value: contrasena),
                 ],
               ),
             ),
@@ -102,18 +116,11 @@ class PerfilScreen extends StatelessWidget {
     );
   }
 
-  // Widget para mostrar campos de perfil de forma simple y estética
-  Widget _buildInfoField({
-    required String label,
-    required String value,
-  }) {
+  Widget _buildInfoField({required String label, required String value}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-        ),
+        Text(label, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
         const SizedBox(height: 6),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
@@ -123,10 +130,7 @@ class PerfilScreen extends StatelessWidget {
             border: Border.all(color: Colors.grey.shade400),
           ),
           alignment: Alignment.centerLeft,
-          child: Text(
-            value,
-            style: const TextStyle(fontSize: 16),
-          ),
+          child: Text(value, style: const TextStyle(fontSize: 16)),
         ),
       ],
     );

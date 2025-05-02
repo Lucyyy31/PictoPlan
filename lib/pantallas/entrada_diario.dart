@@ -8,8 +8,8 @@ class AddEntryScreen extends StatefulWidget {
 }
 
 class _AddEntryScreenState extends State<AddEntryScreen> {
-  final TextEditingController _titleController = TextEditingController(text: 'Tarde en el parque');
-  final TextEditingController _dateController = TextEditingController(text: '11 / 03 / 2025');
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _dateController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
 
   @override
@@ -48,7 +48,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
             children: [
               _buildInputField('Título', _titleController),
               const SizedBox(height: 16),
-              _buildInputField('Fecha', _dateController),
+              _buildDateField('Fecha', _dateController),
               const SizedBox(height: 16),
 
               // Pictogramas
@@ -128,7 +128,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                   ),
                   ElevatedButton(
                     onPressed: () {
-                      // Guardar acción
+                      // Acción al aceptar
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue,
@@ -169,7 +169,53 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
             style: const TextStyle(fontSize: 16),
             decoration: const InputDecoration(
               border: InputBorder.none,
+              hintText: 'Escribe aquí...',
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDateField(String label, TextEditingController controller) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.grey.shade300),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+          TextField(
+            controller: controller,
+            style: const TextStyle(fontSize: 16),
+            readOnly: true,
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              hintText: 'Selecciona una fecha',
+            ),
+            onTap: () async {
+              DateTime? pickedDate = await showDatePicker(
+                context: context,
+                initialDate: DateTime.now(),
+                firstDate: DateTime(2000),
+                lastDate: DateTime(2100),
+                locale: const Locale('es', ''),
+              );
+
+              if (pickedDate != null) {
+                String formattedDate =
+                    "${pickedDate.day.toString().padLeft(2, '0')} / "
+                    "${pickedDate.month.toString().padLeft(2, '0')} / "
+                    "${pickedDate.year}";
+                setState(() {
+                  controller.text = formattedDate;
+                });
+              }
+            },
           ),
         ],
       ),

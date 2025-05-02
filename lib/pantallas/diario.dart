@@ -3,8 +3,20 @@ import '../widgets/bottom_nav.dart';
 import 'app_drawer.dart';
 import 'entrada_diario.dart';
 
-class DiarioScreen extends StatelessWidget {
+class DiarioScreen extends StatefulWidget {
   const DiarioScreen({super.key});
+
+  @override
+  State<DiarioScreen> createState() => _DiarioScreenState();
+}
+
+class _DiarioScreenState extends State<DiarioScreen> {
+  // Lista de eventos
+  List<EventData> events = [
+    EventData(date: '04 / 03 / 2025', description: 'Visita a los abuelos'),
+    EventData(date: '25 / 02 / 2025', description: 'Hice un dibujo'),
+    EventData(date: '14 / 11 / 2024', description: 'Comí mi comida favorita'),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -84,19 +96,16 @@ class DiarioScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 30),
 
-                  // EVENTOS
-                  const EventCard(
-                    date: '04 / 03 / 2025',
-                    description: 'Visita a los abuelos',
-                  ),
-                  const EventCard(
-                    date: '25 / 02 / 2025',
-                    description: 'Hice un dibujo',
-                  ),
-                  const EventCard(
-                    date: '14 / 11 / 2024',
-                    description: 'Comí mi comida favorita',
-                  ),
+                  // Lista de eventos
+                  ...events.map((event) => EventCard(
+                    date: event.date,
+                    description: event.description,
+                    onDelete: () {
+                      setState(() {
+                        events.remove(event); // Eliminar evento de la lista
+                      });
+                    },
+                  )).toList(),
                 ],
               ),
             ),
@@ -107,14 +116,23 @@ class DiarioScreen extends StatelessWidget {
   }
 }
 
+class EventData {
+  final String date;
+  final String description;
+
+  EventData({required this.date, required this.description});
+}
+
 class EventCard extends StatelessWidget {
   final String date;
   final String description;
+  final VoidCallback onDelete; // Callback para eliminar el evento
 
   const EventCard({
     super.key,
     required this.date,
     required this.description,
+    required this.onDelete, // Requiere el callback
   });
 
   @override
@@ -175,10 +193,13 @@ class EventCard extends StatelessWidget {
 
           // ICONOS DE ACCIÓN
           Column(
-            children: const [
-              Icon(Icons.edit, size: 20),
-              SizedBox(height: 12),
-              Icon(Icons.delete, size: 20),
+            children: [
+              const Icon(Icons.edit, size: 20),
+              const SizedBox(height: 12),
+              IconButton(
+                icon: const Icon(Icons.delete, size: 20),
+                onPressed: onDelete, // Llamar al callback de eliminación
+              ),
             ],
           ),
         ],

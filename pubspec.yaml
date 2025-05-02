@@ -10,7 +10,11 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   cupertino_icons: ^1.0.8
+  sqflite: ^2.0.0+4
+  path: ^1.8.0
 
 dev_dependencies:
   flutter_test:
@@ -20,5 +24,25 @@ dev_dependencies:
 flutter:
   uses-material-design: true
 
+
+
   assets:
     - lib/imagenes/
+    - assets/pictogramas/
+    - assets/pictogramas/acciones/
+    - assets/pictogramas/animales/
+    - assets/pictogramas/colores/
+    - assets/pictogramas/comida/
+    - assets/pictogramas/conceptos_basicos/
+    - assets/pictogramas/familia/
+    - assets/pictogramas/lugares/
+    - assets/pictogramas/material_escolar/
+    - assets/pictogramas/mediosTransporte/
+    - assets/pictogramas/numeros/
+    - assets/pictogramas/objetos/
+    - assets/pictogramas/partes_cuerpo/
+    - assets/pictogramas/partesCasa/
+    - assets/pictogramas/prendas_de_ropa/
+    - assets/pictogramas/profesiones/
+    - assets/pictogramas/sentimientos_y_emociones/
+    - assets/pictogramas/tiempo/
