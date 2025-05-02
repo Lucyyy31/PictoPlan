@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/bottom_nav.dart';
 import 'app_drawer.dart';
+import 'add_pictogram.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -69,7 +70,10 @@ class HomeScreen extends StatelessWidget {
                       elevation: 2,
                     ),
                     onPressed: () {
-                      // lógica para añadir evento
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const AddPictogramaScreen()),
+                      );
                     },
                     icon: const Icon(Icons.add),
                     label: const Text(
