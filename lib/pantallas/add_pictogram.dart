@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:picto_plan/pantallas/seleccionar_pictograma.dart';
-import '../database_helper.dart'; // Aquí va tu clase de conexión y consultas a la BD
+import '../database_helper.dart';
 
 class AddPictogramaScreen extends StatefulWidget {
   const AddPictogramaScreen({super.key});
@@ -45,13 +45,23 @@ class _AddPictogramaScreenState extends State<AddPictogramaScreen> {
         itemBuilder: (context, index) {
           final categoria = categorias[index];
           return GestureDetector(
-            onTap: () {
-              Navigator.push(
+            onTap: () async {
+              final idUsuario = 1; // Solo como ejemplo
+
+              final resultado = await Navigator.push<Map<String, dynamic>>(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => SelectPictogramScreen(categoria: categoria),
+                  builder: (_) => SelectPictogramScreen(
+                    idUsuario: idUsuario,
+                    idCategoria: categoria.hashCode,
+                    nombreCategoria: categoria,
+                  ),
                 ),
               );
+
+              if (resultado != null && resultado.containsKey('pictograma')) {
+                Navigator.pop(context, resultado); // Devuelve pictograma a la pantalla anterior
+              }
             },
             child: Container(
               decoration: BoxDecoration(

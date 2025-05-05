@@ -2,9 +2,16 @@ import 'package:flutter/material.dart';
 import '../database_helper.dart';
 
 class SelectPictogramScreen extends StatefulWidget {
-  final String categoria;
+  final int idUsuario;
+  final int idCategoria;
+  final String nombreCategoria;
 
-  const SelectPictogramScreen({super.key, required this.categoria});
+  const SelectPictogramScreen({
+    super.key,
+    required this.idUsuario,
+    required this.idCategoria,
+    required this.nombreCategoria,
+  });
 
   @override
   State<SelectPictogramScreen> createState() => _SelectPictogramScreenState();
@@ -24,7 +31,7 @@ class _SelectPictogramScreenState extends State<SelectPictogramScreen> {
     final resultado = await db.query(
       'pictograma',
       where: 'categoria = ?',
-      whereArgs: [widget.categoria],
+      whereArgs: [widget.nombreCategoria],
     );
 
     setState(() {
@@ -32,10 +39,34 @@ class _SelectPictogramScreenState extends State<SelectPictogramScreen> {
     });
   }
 
+  Future<void> _confirmarSeleccion(Map<String, dynamic> pictograma) async {
+    final confirmado = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar selección'),
+        content: Text('¿Quieres seleccionar este pictograma: ${pictograma['nombre']}?'),
+        actions: [
+          TextButton(
+            child: const Text('Cancelar'),
+            onPressed: () => Navigator.of(context).pop(false),
+          ),
+          ElevatedButton(
+            child: const Text('Confirmar'),
+            onPressed: () => Navigator.of(context).pop(true),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmado == true && mounted) {
+      Navigator.of(context).pop({'pictograma': pictograma});
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Pictogramas: ${widget.categoria}')),
+      appBar: AppBar(title: Text('Pictogramas: ${widget.nombreCategoria}')),
       body: GridView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: pictogramas.length,
@@ -47,15 +78,10 @@ class _SelectPictogramScreenState extends State<SelectPictogramScreen> {
         itemBuilder: (context, index) {
           final pictograma = pictogramas[index];
           final nombre = pictograma['nombre'];
-          final imagenBytes = pictograma['imagen']; // si es BLOB
+          final imagenBytes = pictograma['imagen'];
 
           return GestureDetector(
-            onTap: () {
-              Navigator.pop(context, {
-                'id': pictograma['id'],
-                'nombre': nombre,
-              });
-            },
+            onTap: () => _confirmarSeleccion(pictograma),
             child: Column(
               children: [
                 Expanded(

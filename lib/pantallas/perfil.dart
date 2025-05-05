@@ -24,8 +24,6 @@ class _PerfilScreenState extends State<PerfilScreen> {
   }
 
   Future<void> _cargarDatosUsuario() async {
-    if (Session.correoUsuario == null) return;
-
     final usuarios = await dbHelper.getUsuarios();
     final user = usuarios.firstWhere(
           (u) => u['correoElectronico'] == Session.correoUsuario,

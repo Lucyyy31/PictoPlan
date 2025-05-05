@@ -59,9 +59,14 @@ class PictoPlanApp extends StatelessWidget {
             '/ayuda': (context) => const AyudaScreen(),
             '/notificaciones': (context) => const NotificacionesScreen(),
           },
-          supportedLocales: [
-            const Locale('es', 'ES'), // Español (España)
-            const Locale('en', 'US'), // Inglés (EE.UU.)
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('es', ''), // Español
+            Locale('en', ''), // Inglés u otros si necesitas
           ],
          // locale: const Locale('es', 'ES'), // Aquí forzamos el idioma español
         );

@@ -1,7 +1,8 @@
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import 'package:picto_plan/pantallas/seleccionar_pictograma.dart';
-import 'dart:typed_data';
 import '../database_helper.dart';
+import 'add_pictogram.dart';
 
 class DatosTareaScreen extends StatefulWidget {
   final String tareaNombre;
@@ -189,18 +190,22 @@ class _DatosTareaScreenState extends State<DatosTareaScreen> {
           children: [
             GestureDetector(
               onTap: () async {
-                final resultado = await Navigator.push(
+                // Navegar a AddPictogramaScreen para seleccionar un pictograma
+                final result = await Navigator.push<Map<String, dynamic>>(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => SelectPictogramScreen(categoria: widget.tareaNombre),
+                    builder: (context) => const AddPictogramaScreen(), // Abre AddPictogramaScreen
                   ),
                 );
 
-                if (resultado != null && resultado is Map<String, dynamic>) {
+                // Si el resultado es válido, navega a SelectPictogramScreen
+                if (result != null && result['pictograma'] != null) {
+                  final pictogramaSeleccionado = result['pictograma'];
+
                   setState(() {
-                    _selectedPictogramaId = resultado['id'].toString();
-                    _selectedPictogramaNombre = resultado['nombre'];
-                    _selectedPictogramaImagen = resultado['imagen'];
+                    _selectedPictogramaId = pictogramaSeleccionado['id'].toString();
+                    _selectedPictogramaNombre = pictogramaSeleccionado['nombre'];
+                    _selectedPictogramaImagen = pictogramaSeleccionado['imagen'];
                   });
                 }
               },
@@ -265,13 +270,13 @@ class _DatosTareaScreenState extends State<DatosTareaScreen> {
               width: double.infinity,
               child: ElevatedButton.icon(
                 onPressed: _agregarRutina,
-                icon: const Icon(Icons.save),
-                label: const Text('Guardar tarea', style: TextStyle(fontSize: 18)),
+                icon: const Icon(Icons.add),
+                label: const Text('Agregar tarea'),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
                 ),
               ),
             ),

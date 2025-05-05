@@ -37,15 +37,28 @@ class _HomeScreenState extends State<HomeScreen> {
       final idUsuario = usuarioData['id'];
       final rutinas = await _databaseHelper.getRutinasPorUsuario(idUsuario);
 
+      // Aquí realizamos la carga de pictogramas de manera asíncrona
+      List<RoutineData> loadedRoutines = [];
+
+      for (var rutina in rutinas) {
+        if (rutina['fecha'] == _getFormattedDate()) {
+          // Obtener el pictograma de manera asíncrona
+          final pictograma = await _getPictogramaById(rutina['id_pictograma']);
+
+          // Crear la rutina con el pictograma y agregarla a la lista
+          loadedRoutines.add(RoutineData(
+            id: rutina['id'], // Asignar el id de la rutina
+            name: rutina['nombre'],
+            time: rutina['hora'],
+            completed: rutina['completado'] == 1,
+            pictograma: pictograma,
+          ));
+        }
+      }
+
+      // Después de cargar todas las rutinas, actualizamos el estado
       setState(() {
-        routines = rutinas
-            .where((rutina) => rutina['fecha'] == _getFormattedDate())
-            .map((rutina) => RoutineData(
-          name: rutina['nombre'],
-          time: rutina['hora'],
-          completed: rutina['completado'] == 1,
-        ))
-            .toList();
+        routines = loadedRoutines;
       });
     }
   }
@@ -58,6 +71,12 @@ class _HomeScreenState extends State<HomeScreen> {
     final year = now.year.toString();
 
     return '$day-$month-$year'; // Formato 'DD-MM-YYYY'
+  }
+
+  // Método para obtener el pictograma a partir del ID
+  Future<Map<String, dynamic>> _getPictogramaById(int id) async {
+    final pictogramaData = await _databaseHelper.getPictogramaById(id);
+    return pictogramaData.isNotEmpty ? pictogramaData.first : {};
   }
 
   @override
@@ -132,6 +151,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       name: routine.name,
                       time: routine.time,
                       completed: routine.completed,
+                      pictograma: routine.pictograma,  // Mostrar el pictograma
                       onDelete: () {
                         setState(() {
                           routines.remove(routine);
@@ -151,17 +171,26 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 class RoutineData {
+  final int id;
   final String name;
   final String time;
   final bool completed;
+  final Map<String, dynamic> pictograma;  // Añadimos el pictograma a la rutina
 
-  RoutineData({required this.name, required this.time, this.completed = false});
+  RoutineData({
+    required this.id,
+    required this.name,
+    required this.time,
+    this.completed = false,
+    required this.pictograma,
+  });
 }
 
 class RoutineItem extends StatelessWidget {
   final String name;
   final String time;
   final bool completed;
+  final Map<String, dynamic> pictograma;  // Recibimos el pictograma
   final VoidCallback onDelete;
 
   const RoutineItem({
@@ -169,6 +198,7 @@ class RoutineItem extends StatelessWidget {
     required this.name,
     required this.time,
     this.completed = false,
+    required this.pictograma,
     required this.onDelete,
   });
 
@@ -191,6 +221,7 @@ class RoutineItem extends StatelessWidget {
       ),
       child: Row(
         children: [
+          // Mostrar la imagen del pictograma
           Container(
             width: 50,
             height: 50,
@@ -199,7 +230,14 @@ class RoutineItem extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
-            child: const Icon(Icons.image, color: Colors.white),
+            child: pictograma.isNotEmpty
+                ? Image.memory(
+              pictograma['imagen'],  // Mostrar imagen del pictograma
+              width: 40,
+              height: 40,
+              fit: BoxFit.cover,
+            )
+                : const Icon(Icons.image, color: Colors.white),
           ),
           const SizedBox(width: 10),
           Expanded(
@@ -212,13 +250,30 @@ class RoutineItem extends StatelessWidget {
               ],
             ),
           ),
-          Checkbox(value: completed, onChanged: (value) {}),
+          Checkbox(
+            value: completed,
+            onChanged: (value) {
+              // Actualizar el estado de la tarea en la base de datos
+              _updateCompletionStatus(completed ? 0 : 1);
+            },
+          ),
           const SizedBox(width: 10),
           const Icon(Icons.edit, size: 20),
           const SizedBox(width: 10),
           IconButton(icon: const Icon(Icons.delete, size: 20), onPressed: onDelete),
         ],
       ),
+    );
+  }
+
+  // Método para actualizar el estado de la tarea en la base de datos
+  Future<void> _updateCompletionStatus(int status) async {
+    final db = await DatabaseHelper().database;
+    await db.update(
+      'rutina',
+      {'completado': status},
+      where: 'id = ?',
+      whereArgs: [pictograma['id']],  // Usamos el id de la rutina para actualizar
     );
   }
 }

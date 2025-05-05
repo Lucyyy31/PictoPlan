@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../database_helper.dart';
-import '../session.dart';
 
 class RecoverPasswordScreen extends StatefulWidget {
   const RecoverPasswordScreen({super.key});
