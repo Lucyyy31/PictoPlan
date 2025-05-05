@@ -3,7 +3,7 @@ import '../database_helper.dart';
 import 'app_drawer.dart';
 import 'datosTarea.dart';
 import '../widgets/bottom_nav.dart';
-import '../session.dart'; // Importamos la clase Session para acceder al correo
+import '../session.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -15,6 +15,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   late DatabaseHelper _databaseHelper;
   List<RoutineData> routines = [];
+  bool isLoading = true;
 
   @override
   void initState() {
@@ -23,7 +24,6 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadUserRutinas();
   }
 
-  // Método para cargar las rutinas asociadas al usuario actual
   Future<void> _loadUserRutinas() async {
     String correoUsuario = Session.correoUsuario;
 
@@ -37,17 +37,14 @@ class _HomeScreenState extends State<HomeScreen> {
       final idUsuario = usuarioData['id'];
       final rutinas = await _databaseHelper.getRutinasPorUsuario(idUsuario);
 
-      // Aquí realizamos la carga de pictogramas de manera asíncrona
       List<RoutineData> loadedRoutines = [];
 
       for (var rutina in rutinas) {
         if (rutina['fecha'] == _getFormattedDate()) {
-          // Obtener el pictograma de manera asíncrona
           final pictograma = await _getPictogramaById(rutina['id_pictograma']);
 
-          // Crear la rutina con el pictograma y agregarla a la lista
           loadedRoutines.add(RoutineData(
-            id: rutina['id'], // Asignar el id de la rutina
+            id: rutina['id'],
             name: rutina['nombre'],
             time: rutina['hora'],
             completed: rutina['completado'] == 1,
@@ -56,24 +53,26 @@ class _HomeScreenState extends State<HomeScreen> {
         }
       }
 
-      // Después de cargar todas las rutinas, actualizamos el estado
       setState(() {
         routines = loadedRoutines;
+        isLoading = false;
+      });
+    } else {
+      setState(() {
+        isLoading = false;
       });
     }
   }
 
-  // Método para obtener la fecha actual en formato 'DD-MM-YYYY'
   String _getFormattedDate() {
     final now = DateTime.now();
     final day = now.day.toString().padLeft(2, '0');
     final month = now.month.toString().padLeft(2, '0');
     final year = now.year.toString();
 
-    return '$day-$month-$year'; // Formato 'DD-MM-YYYY'
+    return '$day-$month-$year';
   }
 
-  // Método para obtener el pictograma a partir del ID
   Future<Map<String, dynamic>> _getPictogramaById(int id) async {
     final pictogramaData = await _databaseHelper.getPictogramaById(id);
     return pictogramaData.isNotEmpty ? pictogramaData.first : {};
@@ -109,62 +108,112 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ),
       bottomNavigationBar: const BottomNavBar(currentIndex: 0),
-      body: Column(
-        children: [
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  const Text('Tu rutina', style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 20),
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black,
-                      elevation: 2,
-                    ),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DatosTareaScreen(
-                            tareaNombre: '',
-                            correoUsuario: Session.correoUsuario,
-                            onTareaAgregada: _loadUserRutinas,
-                          ),
-                        ),
-                      );
-                    },
-                    icon: const Icon(Icons.add),
-                    label: const Text(
-                      'Añadir evento',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                    ),
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Padding(
+        padding: const EdgeInsets.all(24),
+        child: routines.isEmpty
+            ? SizedBox(
+          height: MediaQuery.of(context).size.height * 0.6,
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    elevation: 2,
                   ),
-                  const SizedBox(height: 30),
-                  routines.isNotEmpty
-                      ? Column(
-                    children: routines.map((routine) => RoutineItem(
-                      name: routine.name,
-                      time: routine.time,
-                      completed: routine.completed,
-                      pictograma: routine.pictograma,  // Mostrar el pictograma
-                      onDelete: () {
-                        setState(() {
-                          routines.remove(routine);
-                        });
-                      },
-                    )).toList(),
-                  )
-                      : const Text('Todavía no tienes tareas en tu rutina.', style: TextStyle(fontSize: 18, fontStyle: FontStyle.italic)),
-                ],
-              ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DatosTareaScreen(
+                          tareaNombre: '',
+                          correoUsuario: Session.correoUsuario,
+                          onTareaAgregada: _loadUserRutinas,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text(
+                    'Añadir tarea',
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Todavía no tienes tareas en tu rutina.',
+                  style: TextStyle(fontSize: 18, fontStyle: FontStyle.italic),
+                  textAlign: TextAlign.center,
+                ),
+              ],
             ),
           ),
-        ],
+        )
+            : Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            const Text(
+              'Rutina del día',
+              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                backgroundColor: Colors.white,
+                foregroundColor: Colors.black,
+                elevation: 2,
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DatosTareaScreen(
+                      tareaNombre: '',
+                      correoUsuario: Session.correoUsuario,
+                      onTareaAgregada: _loadUserRutinas,
+                    ),
+                  ),
+                );
+              },
+              icon: const Icon(Icons.add),
+              label: const Text(
+                'Añadir tarea',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+              ),
+            ),
+            const SizedBox(height: 30),
+            Expanded(
+              child: ListView.builder(
+                itemCount: routines.length,
+                itemBuilder: (context, index) {
+                  final routine = routines[index];
+                  return RoutineItem(
+                    rutinaId: routine.id,
+                    name: routine.name,
+                    time: routine.time,
+                    completed: routine.completed,
+                    pictograma: routine.pictograma,
+                    onDelete: () async {
+                      await _databaseHelper.deleteRutinaById(routine.id);
+                      setState(() {
+                        routines.remove(routine);
+                      });
+                    },
+                    onTareaEditada: _loadUserRutinas,
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -175,7 +224,7 @@ class RoutineData {
   final String name;
   final String time;
   final bool completed;
-  final Map<String, dynamic> pictograma;  // Añadimos el pictograma a la rutina
+  final Map<String, dynamic> pictograma;
 
   RoutineData({
     required this.id,
@@ -186,21 +235,49 @@ class RoutineData {
   });
 }
 
-class RoutineItem extends StatelessWidget {
+class RoutineItem extends StatefulWidget {
+  final int rutinaId;
   final String name;
   final String time;
   final bool completed;
-  final Map<String, dynamic> pictograma;  // Recibimos el pictograma
+  final Map<String, dynamic> pictograma;
   final VoidCallback onDelete;
+  final VoidCallback onTareaEditada;
 
   const RoutineItem({
     super.key,
+    required this.rutinaId,
     required this.name,
     required this.time,
-    this.completed = false,
+    required this.completed,
     required this.pictograma,
     required this.onDelete,
+    required this.onTareaEditada,
   });
+
+  @override
+  State<RoutineItem> createState() => _RoutineItemState();
+}
+
+class _RoutineItemState extends State<RoutineItem> {
+  late bool isChecked;
+  final DatabaseHelper _databaseHelper = DatabaseHelper();
+
+  @override
+  void initState() {
+    super.initState();
+    isChecked = widget.completed;
+  }
+
+  Future<void> _updateCompletion(bool? value) async {
+    if (value == null) return;
+
+    setState(() {
+      isChecked = value;
+    });
+
+    await _databaseHelper.updateRutinaCompletado(widget.rutinaId, value ? 1 : 0);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -211,17 +288,16 @@ class RoutineItem extends StatelessWidget {
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.grey.shade300),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: Colors.black12,
             blurRadius: 4,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2),
           ),
         ],
       ),
       child: Row(
         children: [
-          // Mostrar la imagen del pictograma
           Container(
             width: 50,
             height: 50,
@@ -230,9 +306,9 @@ class RoutineItem extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
-            child: pictograma.isNotEmpty
+            child: widget.pictograma.isNotEmpty
                 ? Image.memory(
-              pictograma['imagen'],  // Mostrar imagen del pictograma
+              widget.pictograma['imagen'],
               width: 40,
               height: 40,
               fit: BoxFit.cover,
@@ -244,36 +320,39 @@ class RoutineItem extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                Text(widget.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
                 const SizedBox(height: 4),
-                Text(time, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(widget.time, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
               ],
             ),
           ),
           Checkbox(
-            value: completed,
-            onChanged: (value) {
-              // Actualizar el estado de la tarea en la base de datos
-              _updateCompletionStatus(completed ? 0 : 1);
-            },
+            value: isChecked,
+            onChanged: _updateCompletion,
           ),
           const SizedBox(width: 10),
-          const Icon(Icons.edit, size: 20),
-          const SizedBox(width: 10),
-          IconButton(icon: const Icon(Icons.delete, size: 20), onPressed: onDelete),
+          IconButton(
+            icon: const Icon(Icons.edit, size: 20, color: Colors.black54),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => DatosTareaScreen(
+                    tareaId: widget.rutinaId,
+                    tareaNombre: widget.name,
+                    correoUsuario: Session.correoUsuario,
+                    onTareaAgregada: widget.onTareaEditada,
+                  ),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.delete, size: 20, color: Colors.black54),
+            onPressed: widget.onDelete,
+          ),
         ],
       ),
-    );
-  }
-
-  // Método para actualizar el estado de la tarea en la base de datos
-  Future<void> _updateCompletionStatus(int status) async {
-    final db = await DatabaseHelper().database;
-    await db.update(
-      'rutina',
-      {'completado': status},
-      where: 'id = ?',
-      whereArgs: [pictograma['id']],  // Usamos el id de la rutina para actualizar
     );
   }
 }

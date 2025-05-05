@@ -1,16 +1,17 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
-import 'package:picto_plan/pantallas/seleccionar_pictograma.dart';
 import '../database_helper.dart';
 import 'add_pictogram.dart';
 
 class DatosTareaScreen extends StatefulWidget {
+  final int? tareaId; // null si es nueva tarea
   final String tareaNombre;
   final String correoUsuario;
   final Function onTareaAgregada;
 
   const DatosTareaScreen({
     super.key,
+    this.tareaId,
     required this.tareaNombre,
     required this.correoUsuario,
     required this.onTareaAgregada,
@@ -38,6 +39,26 @@ class _DatosTareaScreenState extends State<DatosTareaScreen> {
     _databaseHelper = DatabaseHelper();
     _nombreController = TextEditingController(text: widget.tareaNombre);
     _horaController = TextEditingController();
+
+    if (widget.tareaId != null) {
+      _cargarDatosTarea(widget.tareaId!);
+    }
+  }
+
+  Future<void> _cargarDatosTarea(int tareaId) async {
+    final tarea = await _databaseHelper.getTareaById(tareaId);
+    if (tarea != null) {
+      setState(() {
+        _nombreController.text = tarea['nombre'];
+        _horaController.text = tarea['hora'];
+        final partes = tarea['hora'].split(':');
+        _hora = int.tryParse(partes[0]) ?? _hora;
+        _minuto = int.tryParse(partes[1]) ?? _minuto;
+        _selectedPictogramaId = tarea['id_pictograma'].toString();
+        _selectedPictogramaNombre = tarea['pictograma_nombre'];
+        _selectedPictogramaImagen = tarea['pictograma_imagen'];
+      });
+    }
   }
 
   @override
@@ -48,8 +69,10 @@ class _DatosTareaScreenState extends State<DatosTareaScreen> {
   }
 
   void _mostrarSelectorHora() {
-    int tempHora = _hora;
-    int tempMinuto = _minuto;
+    // Obtener la hora y los minutos locales actuales
+    DateTime now = DateTime.now();
+    int tempHora = now.hour;  // Obtener la hora local
+    int tempMinuto = now.minute;  // Obtener los minutos locales
 
     showModalBottomSheet(
       context: context,
@@ -93,14 +116,8 @@ class _DatosTareaScreenState extends State<DatosTareaScreen> {
                         _minuto = tempMinuto;
                         _horaController.text = '${_hora.toString().padLeft(2, '0')}:${_minuto.toString().padLeft(2, '0')}';
                       });
-                      Navigator.pop(context);
+                      Navigator.pop(context);  // Cerrar el modal
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blueAccent,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    ),
                     child: const Text('Confirmar'),
                   ),
                 ],
@@ -133,41 +150,45 @@ class _DatosTareaScreenState extends State<DatosTareaScreen> {
     );
   }
 
-  void _agregarRutina() async {
-    if (_nombreController.text.isNotEmpty &&
-        _horaController.text.isNotEmpty &&
-        _selectedPictogramaId != null) {
-      final usuarios = await _databaseHelper.getUsuarios();
-      final usuarioData = usuarios.firstWhere(
-            (user) => user['correoElectronico'] == widget.correoUsuario,
-        orElse: () => {},
-      );
-
-      if (usuarioData.isNotEmpty) {
-        final idUsuario = usuarioData['id'];
-
-        await _databaseHelper.insertRutina({
-          'nombre': _nombreController.text,
-          'hora': _horaController.text,
-          'completado': 0,
-          'id_usuario': idUsuario,
-          'id_pictograma': _selectedPictogramaId,
-        });
-
-        widget.onTareaAgregada();
-        Navigator.pop(context);
-      }
-    } else {
+  void _guardarTarea() async {
+    if (_nombreController.text.isEmpty || _horaController.text.isEmpty || _selectedPictogramaId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Completa todos los campos')),
       );
+      return;
+    }
+
+    final usuarios = await _databaseHelper.getUsuarios();
+    final usuarioData = usuarios.firstWhere(
+          (user) => user['correoElectronico'] == widget.correoUsuario,
+      orElse: () => {},
+    );
+
+    if (usuarioData.isEmpty) return;
+
+    final idUsuario = usuarioData['id'];
+    final datosTarea = {
+      'nombre': _nombreController.text,
+      'hora': _horaController.text,
+      'completado': 0,
+      'id_usuario': idUsuario,
+      'id_pictograma': _selectedPictogramaId,
+    };
+
+    if (widget.tareaId == null) {
+      await _databaseHelper.insertRutina(datosTarea);
+    } else {
+      await _databaseHelper.updateRutina(widget.tareaId!, datosTarea);
+    }
+
+    widget.onTareaAgregada();
+    if (mounted) {
+      Navigator.pop(context);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final horaFormateada = '${_hora.toString().padLeft(2, '0')} : ${_minuto.toString().padLeft(2, '0')}';
-
     return Scaffold(
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
@@ -177,110 +198,101 @@ class _DatosTareaScreenState extends State<DatosTareaScreen> {
           icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () => Navigator.pop(context),
         ),
-        title: const Text(
-          'Datos de la tarea',
-          style: TextStyle(color: Colors.black, fontSize: 22, fontWeight: FontWeight.bold),
+        title: Text(
+          widget.tareaId == null ? 'Nueva tarea' : 'Editar tarea',
+          style: const TextStyle(color: Colors.black, fontSize: 22, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            GestureDetector(
-              onTap: () async {
-                // Navegar a AddPictogramaScreen para seleccionar un pictograma
-                final result = await Navigator.push<Map<String, dynamic>>(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AddPictogramaScreen(), // Abre AddPictogramaScreen
-                  ),
-                );
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              GestureDetector(
+                onTap: () async {
+                  final result = await Navigator.push<Map<String, dynamic>>(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AddPictogramaScreen()),
+                  );
 
-                // Si el resultado es válido, navega a SelectPictogramScreen
-                if (result != null && result['pictograma'] != null) {
-                  final pictogramaSeleccionado = result['pictograma'];
-
-                  setState(() {
-                    _selectedPictogramaId = pictogramaSeleccionado['id'].toString();
-                    _selectedPictogramaNombre = pictogramaSeleccionado['nombre'];
-                    _selectedPictogramaImagen = pictogramaSeleccionado['imagen'];
-                  });
-                }
-              },
-              child: Container(
-                width: 140,
-                height: 140,
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                alignment: Alignment.center,
-                child: _selectedPictogramaImagen != null
-                    ? ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: Image.memory(_selectedPictogramaImagen!, fit: BoxFit.cover),
-                )
-                    : const Icon(Icons.image, size: 60, color: Colors.white),
-              ),
-            ),
-            const SizedBox(height: 10),
-            if (_selectedPictogramaNombre != null)
-              Text(_selectedPictogramaNombre!, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 30),
-
-            TextField(
-              controller: _nombreController,
-              decoration: InputDecoration(
-                labelText: 'Nombre de la tarea',
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-              ),
-              style: const TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 20),
-
-            GestureDetector(
-              onTap: _mostrarSelectorHora,
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: Colors.grey.shade300),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.access_time, color: Colors.blue),
-                    const SizedBox(width: 10),
-                    Text('Hora seleccionada: $horaFormateada', style: const TextStyle(fontSize: 16)),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(height: 40),
-
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: _agregarRutina,
-                icon: const Icon(Icons.add),
-                label: const Text('Agregar tarea'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
+                  if (result != null && result['pictograma'] != null) {
+                    final pictogramaSeleccionado = result['pictograma'];
+                    setState(() {
+                      _selectedPictogramaId = pictogramaSeleccionado['id'].toString();
+                      _selectedPictogramaNombre = pictogramaSeleccionado['nombre'];
+                      _selectedPictogramaImagen = pictogramaSeleccionado['imagen'];
+                    });
+                  }
+                },
+                child: Container(
+                  width: 140,
+                  height: 140,
+                  decoration: BoxDecoration(
+                    color: Colors.grey[300],
                     borderRadius: BorderRadius.circular(20),
                   ),
+                  alignment: Alignment.center,
+                  child: _selectedPictogramaImagen != null
+                      ? ClipRRect(
+                    borderRadius: BorderRadius.circular(20),
+                    child: Image.memory(_selectedPictogramaImagen!, fit: BoxFit.cover),
+                  )
+                      : const Icon(Icons.image, size: 60, color: Colors.white),
                 ),
               ),
-            ),
-          ],
+              const SizedBox(height: 10),
+              if (_selectedPictogramaNombre != null)
+                Text(_selectedPictogramaNombre!, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 30),
+              TextField(
+                controller: _nombreController,
+                decoration: InputDecoration(
+                  labelText: 'Nombre de la tarea',
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                ),
+              ),
+              const SizedBox(height: 20),
+              GestureDetector(
+                onTap: _mostrarSelectorHora,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.access_time, color: Colors.blue),
+                      const SizedBox(width: 10),
+                      Text(
+                        _horaController.text.isEmpty ? 'Selecciona una hora' : _horaController.text,
+                        style: const TextStyle(fontSize: 16),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 30),
+              ElevatedButton(
+                onPressed: _guardarTarea,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                ),
+                child: const Text('Aceptar', style: TextStyle(fontSize: 16)),
+              ),
+            ],
+          ),
         ),
       ),
     );

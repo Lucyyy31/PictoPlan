@@ -240,6 +240,49 @@ class DatabaseHelper {
     ORDER BY e.fecha DESC
   ''', [email]);
   }
+  Future<void> deleteRutinaById(int id) async {
+    final db = await database;
+    await db.delete(
+      'rutina',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+  Future<void> updateRutinaCompletado(int idRutina, int completado) async {
+    final db = await database;
+    await db.update(
+      'Rutina',
+      {'completado': completado},
+      where: 'id = ?',
+      whereArgs: [idRutina],
+    );
+  }
+
+  Future<Map<String, dynamic>?> getTareaById(int id) async {
+    final db = await database;
+    final result = await db.rawQuery('''
+    SELECT r.id, r.nombre, r.hora, r.completado, r.id_usuario, r.id_pictograma,
+           p.nombre AS pictograma_nombre, p.imagen AS pictograma_imagen
+    FROM rutina r
+    LEFT JOIN pictograma p ON r.id_pictograma = p.id
+    WHERE r.id = ?
+  ''', [id]);
+
+    if (result.isNotEmpty) {
+      return result.first;
+    }
+    return null;
+  }
+  Future<int> updateRutina(int id, Map<String, dynamic> tarea) async {
+    final db = await database;
+    return await db.update(
+      'rutina',
+      tarea,
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
 
 
   Future<List<Map<String, dynamic>>> getPictogramaById(int id) async {

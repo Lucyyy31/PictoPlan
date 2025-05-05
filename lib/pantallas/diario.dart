@@ -1,4 +1,4 @@
-import 'dart:typed_data';  // Para trabajar con Uint8List
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../widgets/bottom_nav.dart';
 import 'app_drawer.dart';
@@ -33,11 +33,9 @@ class _DiarioScreenState extends State<DiarioScreen> {
       for (var e in eventRows) {
         Uint8List? imageBytes;
 
-        // Intentamos usar la imagen que ya viene de la consulta (pictograma_imagen)
         if (e['pictograma_imagen'] != null) {
           imageBytes = e['pictograma_imagen'] as Uint8List;
         } else {
-          // Si no viene, lo intentamos recuperar manualmente (seguridad)
           final pictogramaId = e['pictograma_id'];
           if (pictogramaId != null) {
             imageBytes = await DatabaseHelper().getPictogramaImageById(pictogramaId);
@@ -101,7 +99,55 @@ class _DiarioScreenState extends State<DiarioScreen> {
           ? const Center(child: CircularProgressIndicator())
           : Padding(
         padding: const EdgeInsets.all(24),
-        child: Column(
+        child: events.isEmpty
+            ? SizedBox(
+          height: MediaQuery.of(context).size.height * 0.6,
+          child: Center(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    elevation: 2,
+                  ),
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                        const AddEntryScreen(),
+                      ),
+                    );
+                    _loadEvents();
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text(
+                    'Añadir evento',
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500),
+                  ),
+                ),
+                const SizedBox(height: 20),
+                const Text(
+                  'Aún no hay eventos guardados.',
+                  style: TextStyle(
+                      fontSize: 18,
+                      fontStyle: FontStyle.italic),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        )
+            : Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
@@ -112,40 +158,42 @@ class _DiarioScreenState extends State<DiarioScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30),
-                ),
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                elevation: 2,
-              ),
-              onPressed: () async {
-                await Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AddEntryScreen(),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton.icon(
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 24, vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    backgroundColor: Colors.white,
+                    foregroundColor: Colors.black,
+                    elevation: 2,
                   ),
-                );
-                _loadEvents(); // Recargar después de volver
-              },
-              icon: const Icon(Icons.add),
-              label: const Text(
-                'Añadir evento',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-              ),
+                  onPressed: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                        const AddEntryScreen(),
+                      ),
+                    );
+                    _loadEvents();
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text(
+                    'Añadir evento',
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 30),
-            events.isEmpty
-                ? const Center(
-              child: Text(
-                'Aún no hay eventos guardados.',
-                style: TextStyle(fontSize: 18),
-              ),
-            )
-                : Expanded(
+            Expanded(
               child: ListView.builder(
                 itemCount: events.length,
                 itemBuilder: (context, index) {
@@ -153,20 +201,22 @@ class _DiarioScreenState extends State<DiarioScreen> {
                   return EventCard(
                     date: event.date,
                     name: event.name,
-                    imageBytes: event.imageBytes, // Pasamos los bytes de la imagen
+                    imageBytes: event.imageBytes,
                     onDelete: () async {
-                      await DatabaseHelper().deleteEvent(event.id);  // Eliminamos el evento de la base de datos
+                      await DatabaseHelper()
+                          .deleteEvent(event.id);
                       setState(() {
-                        events.removeAt(index);  // Removemos el evento de la lista visual
+                        events.removeAt(index);
                       });
                     },
                     onEdit: () {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => AddEntryScreen(eventId: event.id), // Pasamos el eventId
+                          builder: (context) =>
+                              AddEntryScreen(eventId: event.id),
                         ),
-                      ).then((_) => _loadEvents()); // Recargamos los eventos después de editar
+                      ).then((_) => _loadEvents());
                     },
                   );
                 },
@@ -181,32 +231,32 @@ class _DiarioScreenState extends State<DiarioScreen> {
 
 class EventData {
   final String date;
-  final String name;  // Cambié 'description' por 'name'
-  final Uint8List? imageBytes; // Añadimos el campo para la imagen
-  final int id;  // ID del evento
+  final String name;
+  final Uint8List? imageBytes;
+  final int id;
 
   EventData({
     required this.date,
-    required this.name,  // Cambié 'description' por 'name'
+    required this.name,
     this.imageBytes,
-    required this.id,  // Asignamos el ID del evento
+    required this.id,
   });
 }
 
 class EventCard extends StatelessWidget {
   final String date;
-  final String name;  // Cambié 'description' por 'name'
-  final Uint8List? imageBytes; // Recibimos la imagen en bytes
+  final String name;
+  final Uint8List? imageBytes;
   final VoidCallback onDelete;
-  final VoidCallback onEdit; // Nueva función para editar el evento
+  final VoidCallback onEdit;
 
   const EventCard({
     super.key,
     required this.date,
-    required this.name,  // Cambié 'description' por 'name'
+    required this.name,
     required this.imageBytes,
     required this.onDelete,
-    required this.onEdit, // Recibimos la función onEdit
+    required this.onEdit,
   });
 
   @override
@@ -241,7 +291,7 @@ class EventCard extends StatelessWidget {
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  name,  // Mostramos el campo 'name'
+                  name,
                   style: const TextStyle(fontSize: 16),
                 ),
               ],
@@ -257,7 +307,7 @@ class EventCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
-            child: Image.memory(imageBytes!), // Mostrar la imagen
+            child: Image.memory(imageBytes!),
           )
               : Container(
             width: 60,
@@ -272,13 +322,13 @@ class EventCard extends StatelessWidget {
           const SizedBox(width: 10),
           Column(
             children: [
-              GestureDetector(
-                onTap: onEdit,  // Al hacer tap, llamamos la función de editar
-                child: const Icon(Icons.edit, size: 30, color: Colors.black26),
+              IconButton(
+                icon: const Icon(Icons.edit, size: 20, color: Colors.black54),
+                onPressed: onEdit,
               ),
               const SizedBox(height: 12),
               IconButton(
-                icon: const Icon(Icons.delete, size: 20),
+                icon: const Icon(Icons.delete, size: 20, color: Colors.black54),
                 onPressed: onDelete,
               ),
             ],
