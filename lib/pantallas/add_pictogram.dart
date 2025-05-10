@@ -24,14 +24,42 @@ class _AddPictogramaScreenState extends State<AddPictogramaScreen> {
     await db.rawQuery('SELECT DISTINCT categoria FROM pictograma');
 
     setState(() {
-      categorias = resultados.map((fila) => fila['categoria'] as String).toList();
+      categorias =
+          resultados.map((fila) => fila['categoria'] as String).toList();
     });
+  }
+
+  /// Mapea nombres de categoría a rutas de imagen.
+  String obtenerRutaImagen(String categoria) {
+    final mapaEspecial = {
+      'mediosTransporte': 'mediostransporte.jpeg',
+      'partesCasa': 'partescasa.jpeg',
+    };
+
+    if (mapaEspecial.containsKey(categoria)) {
+      return 'assets/imagenes_categorias/${mapaEspecial[categoria]}';
+    }
+
+    final nombreArchivo = categoria
+        .toLowerCase()
+        .replaceAll(' ', '_')
+        .replaceAll('á', 'a')
+        .replaceAll('é', 'e')
+        .replaceAll('í', 'i')
+        .replaceAll('ó', 'o')
+        .replaceAll('ú', 'u')
+        .replaceAll('ñ', 'n');
+
+    return 'assets/imagenes_categorias/$nombreArchivo.jpeg';
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Selecciona una categoría")),
+      appBar: AppBar(
+        title: const Text("Selecciona una categoría"),
+        backgroundColor: Colors.lightBlue[300],
+      ),
       body: categorias.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : GridView.builder(
@@ -39,16 +67,19 @@ class _AddPictogramaScreenState extends State<AddPictogramaScreen> {
         itemCount: categorias.length,
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          crossAxisSpacing: 12,
-          mainAxisSpacing: 12,
+          crossAxisSpacing: 16,
+          mainAxisSpacing: 16,
         ),
         itemBuilder: (context, index) {
           final categoria = categorias[index];
+          final imagenRuta = obtenerRutaImagen(categoria);
+
           return GestureDetector(
             onTap: () async {
-              final idUsuario = 1; // Solo como ejemplo
+              final idUsuario = 1;
 
-              final resultado = await Navigator.push<Map<String, dynamic>>(
+              final resultado =
+              await Navigator.push<Map<String, dynamic>>(
                 context,
                 MaterialPageRoute(
                   builder: (_) => SelectPictogramScreen(
@@ -59,19 +90,41 @@ class _AddPictogramaScreenState extends State<AddPictogramaScreen> {
                 ),
               );
 
-              if (resultado != null && resultado.containsKey('pictograma')) {
-                Navigator.pop(context, resultado); // Devuelve pictograma a la pantalla anterior
+              if (resultado != null &&
+                  resultado.containsKey('pictograma')) {
+                Navigator.pop(context, resultado);
               }
             },
             child: Container(
               decoration: BoxDecoration(
-                color: Colors.grey[300],
                 borderRadius: BorderRadius.circular(20),
+                image: DecorationImage(
+                  image: AssetImage(imagenRuta),
+                  fit: BoxFit.cover,
+                  colorFilter: ColorFilter.mode(
+                    Colors.black.withOpacity(0.4),
+                    BlendMode.darken,
+                  ),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
               alignment: Alignment.center,
               child: Text(
                 categoria.toUpperCase(),
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  color: Colors.white,
+                  letterSpacing: 1.2,
+                ),
               ),
             ),
           );

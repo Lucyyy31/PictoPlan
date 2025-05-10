@@ -2,7 +2,7 @@ import 'dart:math';
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../database_helper.dart';
-import '../session.dart'; // Importa la clase Session
+import '../session.dart';
 import '../widgets/bottom_nav.dart';
 import 'app_drawer.dart';
 
@@ -30,9 +30,8 @@ class _AprenderScreenState extends State<AprenderScreen> {
   }
 
   Future<void> _cargarQuiz() async {
-    String learningType = Session.learningType;  // Tipo de aprendizaje
-
-    List<Map<String, dynamic>> pictogramasTemp = [];  // Lista mutable para los pictogramas
+    String learningType = Session.learningType;
+    List<Map<String, dynamic>> pictogramasTemp = [];
 
     if (learningType == 'General') {
       pictogramasTemp = await dbHelper.getPictogramas();
@@ -52,16 +51,14 @@ class _AprenderScreenState extends State<AprenderScreen> {
         _seleccion = null;
         _respondido = false;
       });
-      return; // Si no hay pictogramas, salir temprano
+      return;
     }
 
     final random = Random();
     final correcto = pictogramasTemp[random.nextInt(pictogramasTemp.length)];
-
     _respuestaCorrecta = correcto['nombre'];
     _imagenActual = correcto['imagen'];
 
-    // Obtener 3 nombres incorrectos únicos
     final opcionesIncorrectas = <String>{};
     while (opcionesIncorrectas.length < 3) {
       final candidato = pictogramasTemp[random.nextInt(pictogramasTemp.length)];
@@ -91,27 +88,47 @@ class _AprenderScreenState extends State<AprenderScreen> {
         context: context,
         builder: (_) => AlertDialog(
           title: Text(esCorrecto ? '¡Correcto!' : '¡Incorrecto!'),
-          content: Text(esCorrecto
-              ? '¡Has elegido la respuesta correcta!'
-              : 'La respuesta correcta era: $_respuestaCorrecta'),
+          content: Text(
+            esCorrecto
+                ? '¡Has elegido la respuesta correcta!'
+                : 'La respuesta correcta era: $_respuestaCorrecta',
+          ),
           actions: [
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                _cargarQuiz(); // Reinicia
+                _cargarQuiz();
               },
               child: const Text('Volver a jugar'),
-            )
+            ),
           ],
         ),
       );
     });
   }
 
-  Color _colorOpcion(String opcion) {
-    if (!_respondido) return Colors.white;
-    if (opcion == _respuestaCorrecta) return Colors.green[200]!;
-    if (opcion == _seleccion) return Colors.red[200]!;
+  Color _getColor(String name) {
+    final Map<String, Color> colorMap = {
+      'rosa': Colors.pink[200]!,
+      'amarillo': Colors.yellow[300]!,
+      'verde': Colors.green[300]!,
+      'azul': Colors.blue[300]!,
+      'lila': Colors.purple[200]!,
+      'naranja': Colors.orange[200]!,
+      'marron': Colors.brown[200]!,
+      'cyan': Colors.lightBlue[200]!,
+    };
+
+    return colorMap[name] ?? Colors.grey[300]!; // Default color
+  }
+
+  Color _colorOpcion(int index, String opcion) {
+    if (!_respondido) {
+      final colores = Session.selectedColors.value;
+      return _getColor(colores[index % colores.length]);
+    }
+    if (opcion == _respuestaCorrecta) return Colors.green[300]!;
+    if (opcion == _seleccion) return Colors.red[300]!;
     return Colors.grey[300]!;
   }
 
@@ -121,10 +138,32 @@ class _AprenderScreenState extends State<AprenderScreen> {
       drawer: const AppDrawer(),
       backgroundColor: Colors.grey[100],
       appBar: AppBar(
-        backgroundColor: Colors.grey[200],
+        backgroundColor: Colors.grey[200], // Light grey background
         elevation: 0,
+        automaticallyImplyLeading: false, // Disable default back button
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Image.asset('lib/imagenes/logo.png', height: 40),
+            const SizedBox(width: 10),
+            const Text(
+              'PictoPlan',
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.black87,
+              ),
+            ),
+          ],
+        ),
         centerTitle: true,
-        title: const Text('Aprender'),
+        leading: Builder(
+          builder: (context) => IconButton(
+            icon: const Icon(Icons.menu, color: Colors.black87, size: 30),
+            onPressed: () => Scaffold.of(context).openDrawer(),
+          ),
+        ),
       ),
       bottomNavigationBar: const BottomNavBar(currentIndex: 2),
       body: Padding(
@@ -133,16 +172,19 @@ class _AprenderScreenState extends State<AprenderScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Mostrar la imagen del pictograma
-            if (_imagenActual != null) Image.memory(_imagenActual!),
-            const SizedBox(height: 20),
-            // Opciones de respuesta en formato cuadrado (2x2)
-            Flexible(
+            if (_imagenActual != null)
+              Image.memory(
+                _imagenActual!,
+                height: 180,
+              ),
+            const SizedBox(height: 24),
+            SizedBox(
+              height: 200,
               child: GridView.builder(
-                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,  // Dos columnas
-                  childAspectRatio: 2, // Ajustar las opciones
+                  crossAxisCount: 2,
+                  childAspectRatio: 2.5,
                   crossAxisSpacing: 16,
                   mainAxisSpacing: 16,
                 ),
@@ -153,7 +195,10 @@ class _AprenderScreenState extends State<AprenderScreen> {
                     onTap: () => _seleccionarOpcion(opcion),
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      color: _colorOpcion(opcion),
+                      decoration: BoxDecoration(
+                        color: _colorOpcion(index, opcion),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       child: Center(
                         child: Text(
                           opcion,

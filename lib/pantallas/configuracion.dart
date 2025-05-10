@@ -9,8 +9,30 @@ class ConfiguracionScreen extends StatefulWidget {
 }
 
 class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
-  bool notifications = true;
-  bool sound = true;
+  bool notifications = Session.notifications.value;
+  final List<String> coloresDisponibles = [
+    'rosa',
+    'amarillo',
+    'verde',
+    'azul',
+    'lila',
+    'naranja',
+    'marron',
+    'cyan',
+  ];
+
+
+  final Map<String, Color> colorMap = {
+    'rosa': Colors.pink[200]!,
+    'amarillo': Colors.yellow[300]!,
+    'verde': Colors.green[300]!,
+    'azul': Colors.blue[300]!,
+    'lila': Colors.purple[200]!,
+    'naranja': Colors.orange[200]!,
+    'marron': Colors.brown[200]!,
+    'cyan': Colors.lightBlue[200]!,
+  };
+
 
   @override
   Widget build(BuildContext context) {
@@ -24,14 +46,9 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
             elevation: 1,
             leading: IconButton(
               icon: Icon(Icons.arrow_back, color: isDark ? Colors.white : Colors.black),
-              onPressed: () {
-                Navigator.pop(context);
-              },
+              onPressed: () => Navigator.pop(context),
             ),
-            title: Text(
-              'Configuración',
-              style: TextStyle(color: isDark ? Colors.white : Colors.black),
-            ),
+            title: Text('Configuración', style: TextStyle(color: isDark ? Colors.white : Colors.black)),
             centerTitle: true,
           ),
           body: ListView(
@@ -43,13 +60,67 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                     (val) => Session.darkMode.value = val,
                 isDark,
               ),
-              _buildSwitch('Notificaciones', notifications, (val) {
-                setState(() => notifications = val);
-              }, isDark),
-              _buildSwitch('Sonido', sound, (val) {
-                setState(() => sound = val);
-              }, isDark),
+              _buildSwitch(
+                'Notificaciones',
+                notifications,
+                    (val) {
+                  setState(() {
+                    notifications = val;
+                    Session.notifications.value = val;
+                  });
+                },
+                isDark,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Colores para aprender (elige 4)',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : Colors.black,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ValueListenableBuilder<List<String>>(
+                valueListenable: Session.selectedColors,
+                builder: (context, selected, _) {
+                  return Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: coloresDisponibles.map((color) {
+                      final isSelected = selected.contains(color);
+                      return GestureDetector(
+                        onTap: () {
+                          setState(() {
+                            if (isSelected) {
+                              Session.selectedColors.value = List.from(selected)..remove(color);
+                            } else if (selected.length < 4) {
+                              Session.selectedColors.value = List.from(selected)..add(color);
+                            }
+                          });
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          decoration: BoxDecoration(
+                            color: colorMap[color],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: isSelected ? Colors.black : Colors.transparent,
+                              width: 2,
+                            ),
+                          ),
+                          child: Text(
+                            color,
+                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  );
+                },
+              ),
               const SizedBox(height: 24),
+              // Otras configuraciones...
               Container(
                 decoration: BoxDecoration(
                   border: Border.all(color: isDark ? Colors.white : Colors.black),
