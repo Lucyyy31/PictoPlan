@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'session.dart';
 import 'pantallas/splash_screen.dart';
@@ -16,7 +17,32 @@ import 'pantallas/configuracion.dart';
 import 'pantallas/ayuda.dart';
 import 'pantallas/notificaciones.dart';
 
-void main() => runApp(const PictoPlanApp());
+import 'database_helper.dart';
+import 'lista_pictogramas.dart';
+import 'app_themes.dart';
+
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  final prefs = await SharedPreferences.getInstance();
+  final pictosCargados = prefs.getBool('pictogramas_cargados') ?? false;
+
+  if (!pictosCargados) {
+    try {
+      final dbHelper = DatabaseHelper();
+      await dbHelper.insertAllPictogramas(pictogramas);
+      print('✅ Pictogramas insertados correctamente.');
+      await prefs.setBool('pictogramas_cargados', true);
+    } catch (e) {
+      print('❌ Error al insertar pictogramas: $e');
+    }
+  } else {
+    print('ℹ️ Pictogramas ya estaban cargados.');
+  }
+
+  runApp(const PictoPlanApp());
+}
 
 class PictoPlanApp extends StatelessWidget {
   const PictoPlanApp({super.key});
@@ -28,20 +54,8 @@ class PictoPlanApp extends StatelessWidget {
       builder: (context, isDark, _) {
         return MaterialApp(
           title: 'PictoPlan',
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.lightBlue,
-              brightness: Brightness.light,
-            ),
-            useMaterial3: true,
-          ),
-          darkTheme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.blueGrey,
-              brightness: Brightness.dark,
-            ),
-            useMaterial3: true,
-          ),
+          theme: AppThemes.lightTheme,
+          darkTheme: AppThemes.darkTheme,
           themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
           initialRoute: '/',
           routes: {
@@ -68,7 +82,6 @@ class PictoPlanApp extends StatelessWidget {
             Locale('es', ''), // Español
             Locale('en', ''), // Inglés u otros si necesitas
           ],
-         // locale: const Locale('es', 'ES'), // Aquí forzamos el idioma español
         );
       },
     );

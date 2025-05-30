@@ -10,6 +10,7 @@ class ConfiguracionScreen extends StatefulWidget {
 
 class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
   bool notifications = Session.notifications.value;
+
   final List<String> coloresDisponibles = [
     'rosa',
     'amarillo',
@@ -21,7 +22,6 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
     'cyan',
   ];
 
-
   final Map<String, Color> colorMap = {
     'rosa': Colors.pink[200]!,
     'amarillo': Colors.yellow[300]!,
@@ -32,7 +32,6 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
     'marron': Colors.brown[200]!,
     'cyan': Colors.lightBlue[200]!,
   };
-
 
   @override
   Widget build(BuildContext context) {
@@ -54,18 +53,24 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
           body: ListView(
             padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
             children: [
-              _buildSwitch(
+              _buildCheckbox(
                 'Modo oscuro',
                 isDark,
-                    (val) => Session.darkMode.value = val,
+                Session.darkMode.value,
+                    (val) {
+                  setState(() {
+                    Session.darkMode.value = val!;
+                  });
+                },
                 isDark,
               ),
-              _buildSwitch(
+              _buildCheckbox(
                 'Notificaciones',
+                isDark,
                 notifications,
                     (val) {
                   setState(() {
-                    notifications = val;
+                    notifications = val!;
                     Session.notifications.value = val;
                   });
                 },
@@ -111,7 +116,10 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                           ),
                           child: Text(
                             color,
-                            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black,
+                            ),
                           ),
                         ),
                       );
@@ -120,7 +128,6 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                 },
               ),
               const SizedBox(height: 24),
-              // Otras configuraciones...
               Container(
                 decoration: BoxDecoration(
                   border: Border.all(color: isDark ? Colors.white : Colors.black),
@@ -133,12 +140,15 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                       color: isDark ? Colors.grey[800] : Colors.lightBlue[100],
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: const [
+                        children: [
                           Text(
                             'Tipo de aprendizaje',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: isDark ? Colors.white : Colors.black,
+                            ),
                           ),
-                          Icon(Icons.arrow_drop_up),
+                          Icon(Icons.arrow_drop_up, color: isDark ? Colors.white : Colors.black),
                         ],
                       ),
                     ),
@@ -183,19 +193,20 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
     );
   }
 
-  Widget _buildSwitch(String title, bool value, ValueChanged<bool> onChanged, bool isDark) {
-    return SwitchListTile(
+  Widget _buildCheckbox(String title, bool isDark, bool value, ValueChanged<bool?> onChanged, bool theme) {
+    return CheckboxListTile(
+      contentPadding: EdgeInsets.zero,
+      controlAffinity: ListTileControlAffinity.trailing,
+      value: value,
+      onChanged: onChanged,
       title: Text(
         title,
         style: TextStyle(
           fontSize: 18,
           fontWeight: FontWeight.w500,
-          color: isDark ? Colors.white : Colors.black,
+          color: theme ? Colors.white : Colors.black,
         ),
       ),
-      value: value,
-      activeColor: Colors.blue,
-      onChanged: onChanged,
     );
   }
 }

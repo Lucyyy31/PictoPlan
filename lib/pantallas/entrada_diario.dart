@@ -5,7 +5,7 @@ import '../session.dart';
 import 'add_pictogram.dart';
 
 class AddEntryScreen extends StatefulWidget {
-  final int? eventId; // Parámetro opcional para el ID del evento
+  final int? eventId;
 
   const AddEntryScreen({Key? key, this.eventId}) : super(key: key);
 
@@ -25,7 +25,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
   void initState() {
     super.initState();
     if (widget.eventId != null) {
-      _loadEventData(widget.eventId!); // Si hay ID, cargar los datos del evento
+      _loadEventData(widget.eventId!);
     }
   }
 
@@ -50,7 +50,6 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
       );
     }
   }
-
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -89,7 +88,6 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
 
     try {
       if (widget.eventId == null) {
-        // Si es un evento nuevo, insertamos un nuevo registro
         await _dbHelper.insertarEventoConPictogramas(
           nombre: _titleController.text,
           fecha: _dateController.text,
@@ -98,9 +96,8 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
           idUsuario: userId,
         );
       } else {
-        // Si es un evento existente, actualizamos el evento
         await _dbHelper.actualizarEvento(
-          eventId: widget.eventId!, // Usamos el ID para actualizar el evento específico
+          eventId: widget.eventId!,
           nombre: _titleController.text,
           fecha: _dateController.text,
           descripcion: _descriptionController.text,
@@ -119,13 +116,16 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.grey[200],
+        backgroundColor: theme.appBarTheme.backgroundColor ?? theme.colorScheme.surface,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          icon: Icon(Icons.arrow_back, color: theme.iconTheme.color),
           onPressed: () => Navigator.pop(context),
         ),
         title: Row(
@@ -135,8 +135,8 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
             Image.asset('lib/imagenes/logo.png', height: 40),
             const SizedBox(width: 10),
             Text(
-              widget.eventId == null ? 'Nueva entrada' : 'Editar entrada', // Cambiar el título según si es nueva o edición
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 24, color: Colors.black87),
+              widget.eventId == null ? 'Nueva entrada' : 'Editar entrada',
+              style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -147,14 +147,14 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
         child: SingleChildScrollView(
           child: Column(
             children: [
-              _buildInputField('Título', _titleController),
+              _buildInputField('Título', _titleController, theme),
               const SizedBox(height: 16),
-              _buildDateField('Fecha', _dateController),
+              _buildDateField('Fecha', _dateController, theme),
               const SizedBox(height: 16),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Pictogramas:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                  Text('Pictogramas:', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
                   const SizedBox(height: 10),
                   ElevatedButton.icon(
                     onPressed: () async {
@@ -169,13 +169,13 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.black87,
+                      backgroundColor: theme.colorScheme.surface,
+                      foregroundColor: theme.colorScheme.onSurface,
                       elevation: 1,
                       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(20),
-                        side: BorderSide(color: Colors.grey.shade300),
+                        side: BorderSide(color: theme.dividerColor),
                       ),
                     ),
                     icon: const Icon(Icons.add_photo_alternate_outlined),
@@ -186,9 +186,9 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                     Container(
                       padding: const EdgeInsets.all(10),
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: theme.colorScheme.surface,
                         borderRadius: BorderRadius.circular(20),
-                        border: Border.all(color: Colors.grey.shade300),
+                        border: Border.all(color: theme.dividerColor),
                       ),
                       child: Wrap(
                         spacing: 10,
@@ -197,13 +197,9 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                           return Column(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Image.memory(
-                                picto['imagen'] as Uint8List,
-                                width: 50,
-                                height: 50,
-                              ),
+                              Image.memory(picto['imagen'] as Uint8List, width: 50, height: 50),
                               const SizedBox(height: 4),
-                              Text(picto['nombre'], style: const TextStyle(fontSize: 12)),
+                              Text(picto['nombre'], style: theme.textTheme.bodySmall),
                             ],
                           );
                         }).toList(),
@@ -212,7 +208,7 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              _buildDescriptionField(),
+              _buildDescriptionField(theme),
               const SizedBox(height: 30),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -220,9 +216,9 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                   ElevatedButton(
                     onPressed: () => Navigator.pop(context),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.white,
-                      foregroundColor: Colors.blue,
-                      side: const BorderSide(color: Colors.blue),
+                      backgroundColor: theme.colorScheme.surface,
+                      foregroundColor: theme.colorScheme.primary,
+                      side: BorderSide(color: theme.colorScheme.primary),
                       elevation: 2,
                       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
@@ -232,8 +228,8 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
                   ElevatedButton(
                     onPressed: _saveEntry,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
+                      backgroundColor: theme.colorScheme.primary,
+                      foregroundColor: theme.colorScheme.onPrimary,
                       padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 16),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                     ),
@@ -248,21 +244,21 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     );
   }
 
-  Widget _buildInputField(String label, TextEditingController controller) {
+  Widget _buildInputField(String label, TextEditingController controller, ThemeData theme) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: theme.dividerColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+          Text(label, style: theme.textTheme.labelSmall?.copyWith(color: theme.hintColor)),
           TextField(
             controller: controller,
-            style: const TextStyle(fontSize: 16),
+            style: theme.textTheme.bodyLarge,
             decoration: const InputDecoration(border: InputBorder.none, hintText: 'Escribe aquí...'),
           ),
         ],
@@ -270,28 +266,28 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     );
   }
 
-  Widget _buildDateField(String label, TextEditingController controller) {
+  Widget _buildDateField(String label, TextEditingController controller, ThemeData theme) {
     return GestureDetector(
       onTap: () => _selectDate(context),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.colorScheme.surface,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey.shade300),
+          border: Border.all(color: theme.dividerColor),
         ),
         child: Row(
           children: [
-            const Icon(Icons.calendar_today, color: Colors.grey),
+            Icon(Icons.calendar_today, color: theme.iconTheme.color),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: const TextStyle(fontSize: 14, color: Colors.grey)),
+                  Text(label, style: theme.textTheme.labelSmall?.copyWith(color: theme.hintColor)),
                   Text(
                     controller.text.isEmpty ? 'Selecciona una fecha' : controller.text,
-                    style: const TextStyle(fontSize: 16),
+                    style: theme.textTheme.bodyLarge,
                   ),
                 ],
               ),
@@ -302,23 +298,23 @@ class _AddEntryScreenState extends State<AddEntryScreen> {
     );
   }
 
-  Widget _buildDescriptionField() {
+  Widget _buildDescriptionField(ThemeData theme) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade300),
+        border: Border.all(color: theme.dividerColor),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Descripción:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+          Text('Descripción:', style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
           const SizedBox(height: 10),
           TextField(
             controller: _descriptionController,
             maxLines: 6,
-            style: const TextStyle(fontSize: 16),
+            style: theme.textTheme.bodyLarge,
             decoration: const InputDecoration.collapsed(hintText: 'Escribe aquí tu experiencia...'),
           ),
         ],

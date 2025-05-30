@@ -1,57 +1,5 @@
 import 'package:flutter/material.dart';
-
-class NotificacionesScreen extends StatelessWidget {
-  const NotificacionesScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        elevation: 1,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: const Text(
-          'Notificaciones',
-          style: TextStyle(color: Colors.black),
-        ),
-        centerTitle: true,
-      ),
-      body: ListView(
-        children: const [
-          NotificationItem(
-            iconType: NotificationIconType.activity,
-            title: 'Nueva actividad',
-            description: 'Añadido nuevo pictograma',
-          ),
-          NotificationItem(
-            iconType: NotificationIconType.activity,
-            title: 'Nueva actividad',
-            description: 'Añadido nuevo pictograma',
-          ),
-          NotificationItem(
-            iconType: NotificationIconType.alert,
-            title: 'Aviso',
-            description: 'Ha cambiado tu rutina',
-          ),
-          NotificationItem(
-            iconType: NotificationIconType.activity,
-            title: 'Nueva actividad',
-            description: 'Eliminado pictograma',
-          ),
-          NotificationItem(
-            iconType: NotificationIconType.alert,
-            title: 'Aviso',
-            description: 'Ha cambiado tu rutina',
-          ),
-        ],
-      ),
-    );
-  }
-}
+import '../widgets/bottom_nav.dart';
 
 enum NotificationIconType { activity, alert }
 
@@ -119,6 +67,41 @@ class NotificationItem extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class NotificacionesScreen extends StatelessWidget {
+  static final List<NotificationItem> notifications = [];
+
+  const NotificacionesScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[100],
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 1,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          'Notificaciones',
+          style: TextStyle(color: Colors.black),
+        ),
+        centerTitle: true,
+      ),
+      bottomNavigationBar: const BottomNavBar(currentIndex: 1),
+      body: notifications.isEmpty
+          ? const Center(
+        child: Text(
+          'No hay notificaciones.',
+          style: TextStyle(fontSize: 18),
+        ),
+      )
+          : ListView(children: notifications),
     );
   }
 }

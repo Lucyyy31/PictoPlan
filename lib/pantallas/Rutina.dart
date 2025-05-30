@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../database_helper.dart';
+import '../notification_manager.dart';
 import 'app_drawer.dart';
 import 'datosTarea.dart';
 import '../widgets/bottom_nav.dart';
@@ -69,7 +70,6 @@ class _HomeScreenState extends State<HomeScreen> {
     final day = now.day.toString().padLeft(2, '0');
     final month = now.month.toString().padLeft(2, '0');
     final year = now.year.toString();
-
     return '$day-$month-$year';
   }
 
@@ -78,13 +78,36 @@ class _HomeScreenState extends State<HomeScreen> {
     return pictogramaData.isNotEmpty ? pictogramaData.first : {};
   }
 
+  Widget _styledContainer({required Widget child}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black54 : Colors.black12,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       drawer: const AppDrawer(),
-      backgroundColor: Colors.grey[100],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.grey[200],
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor ?? (isDark ? Colors.grey[900] : Colors.grey[200]),
         elevation: 0,
         automaticallyImplyLeading: false,
         title: Row(
@@ -93,16 +116,20 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             Image.asset('lib/imagenes/logo.png', height: 40),
             const SizedBox(width: 10),
-            const Text(
+            Text(
               'PictoPlan',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.black87),
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Theme.of(context).colorScheme.onBackground,
+              ),
             ),
           ],
         ),
         centerTitle: true,
         leading: Builder(
           builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black87, size: 30),
+            icon: Icon(Icons.menu, color: Theme.of(context).iconTheme.color, size: 30),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
@@ -119,36 +146,42 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                ElevatedButton.icon(
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
-                    elevation: 2,
-                  ),
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => DatosTareaScreen(
-                          tareaNombre: '',
-                          correoUsuario: Session.correoUsuario,
-                          onTareaAgregada: _loadUserRutinas,
+                _styledContainer(
+                  child: ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      backgroundColor: Theme.of(context).cardColor,
+                      foregroundColor: Theme.of(context).colorScheme.onSurface,
+                      elevation: 0,
+                    ),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DatosTareaScreen(
+                            tareaNombre: '',
+                            correoUsuario: Session.correoUsuario,
+                            onTareaAgregada: _loadUserRutinas,
+                          ),
                         ),
-                      ),
-                    );
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text(
-                    'Añadir tarea',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                      );
+                    },
+                    icon: const Icon(Icons.add),
+                    label: const Text(
+                      'Añadir tarea',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text(
+                Text(
                   'Todavía no tienes tareas en tu rutina.',
-                  style: TextStyle(fontSize: 18, fontStyle: FontStyle.italic),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontStyle: FontStyle.italic,
+                    color: Theme.of(context).textTheme.bodyLarge!.color,
+                  ),
                   textAlign: TextAlign.center,
                 ),
               ],
@@ -156,37 +189,39 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         )
             : Column(
-          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Rutina del día',
-              style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 20),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
-                elevation: 2,
-              ),
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => DatosTareaScreen(
-                      tareaNombre: '',
-                      correoUsuario: Session.correoUsuario,
-                      onTareaAgregada: _loadUserRutinas,
+            _styledContainer(
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  backgroundColor: Theme.of(context).cardColor,
+                  foregroundColor: Theme.of(context).colorScheme.onSurface,
+                  elevation: 0,
+                ),
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => DatosTareaScreen(
+                        tareaNombre: '',
+                        correoUsuario: Session.correoUsuario,
+                        onTareaAgregada: _loadUserRutinas,
+                      ),
                     ),
-                  ),
-                );
-              },
-              icon: const Icon(Icons.add),
-              label: const Text(
-                'Añadir tarea',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  );
+                },
+                icon: const Icon(Icons.add),
+                label: const Text(
+                  'Añadir tarea',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
               ),
             ),
             const SizedBox(height: 30),
@@ -206,6 +241,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       setState(() {
                         routines.remove(routine);
                       });
+
+                      if (Session.notifications.value) {
+                        NotificationManager.addNotification(
+                          'Tarea eliminada',
+                          'Se ha eliminado la tarea "${routine.name}" de la rutina.',
+                        );
+                      }
                     },
                     onTareaEditada: _loadUserRutinas,
                   );
@@ -281,18 +323,20 @@ class _RoutineItemState extends State<RoutineItem> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey.shade300),
-        boxShadow: const [
+        border: Border.all(color: isDark ? Colors.grey.shade700 : Colors.grey.shade300),
+        boxShadow: [
           BoxShadow(
-            color: Colors.black12,
+            color: isDark ? Colors.black54 : Colors.black12,
             blurRadius: 4,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),
@@ -302,7 +346,7 @@ class _RoutineItemState extends State<RoutineItem> {
             width: 50,
             height: 50,
             decoration: BoxDecoration(
-              color: Colors.grey[300],
+              color: isDark ? Colors.grey[700] : Colors.grey[300],
               borderRadius: BorderRadius.circular(10),
             ),
             alignment: Alignment.center,
@@ -313,16 +357,16 @@ class _RoutineItemState extends State<RoutineItem> {
               height: 40,
               fit: BoxFit.cover,
             )
-                : const Icon(Icons.image, color: Colors.white),
+                : const Icon(Icons.image),
           ),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(widget.name, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500)),
+                Text(widget.name, style: Theme.of(context).textTheme.bodyLarge),
                 const SizedBox(height: 4),
-                Text(widget.time, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(widget.time, style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold)),
               ],
             ),
           ),
@@ -330,9 +374,8 @@ class _RoutineItemState extends State<RoutineItem> {
             value: isChecked,
             onChanged: _updateCompletion,
           ),
-          const SizedBox(width: 10),
           IconButton(
-            icon: const Icon(Icons.edit, size: 20, color: Colors.black54),
+            icon: const Icon(Icons.edit, size: 20),
             onPressed: () {
               Navigator.push(
                 context,
@@ -348,7 +391,7 @@ class _RoutineItemState extends State<RoutineItem> {
             },
           ),
           IconButton(
-            icon: const Icon(Icons.delete, size: 20, color: Colors.black54),
+            icon: const Icon(Icons.delete, size: 20),
             onPressed: widget.onDelete,
           ),
         ],

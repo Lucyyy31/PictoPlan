@@ -15,8 +15,6 @@ class AprenderScreen extends StatefulWidget {
 
 class _AprenderScreenState extends State<AprenderScreen> {
   final DatabaseHelper dbHelper = DatabaseHelper();
-  late List<Map<String, dynamic>> _pictogramas;
-
   Uint8List? _imagenActual;
   String? _respuestaCorrecta;
   List<String> _opciones = [];
@@ -36,10 +34,12 @@ class _AprenderScreenState extends State<AprenderScreen> {
     if (learningType == 'General') {
       pictogramasTemp = await dbHelper.getPictogramas();
     } else if (learningType == 'Sentimientos') {
-      pictogramasTemp = await dbHelper.getPictogramasPorCarpeta('sentimientos_y_emociones');
+      pictogramasTemp =
+      await dbHelper.getPictogramasPorCarpeta('sentimientos_y_emociones');
     } else if (learningType == 'Objetos') {
       pictogramasTemp = await dbHelper.getPictogramasPorCarpeta('objetos');
-      final materialEscolar = await dbHelper.getPictogramasPorCarpeta('material_escolar');
+      final materialEscolar =
+      await dbHelper.getPictogramasPorCarpeta('material_escolar');
       pictogramasTemp.addAll(materialEscolar);
     }
 
@@ -61,7 +61,8 @@ class _AprenderScreenState extends State<AprenderScreen> {
 
     final opcionesIncorrectas = <String>{};
     while (opcionesIncorrectas.length < 3) {
-      final candidato = pictogramasTemp[random.nextInt(pictogramasTemp.length)];
+      final candidato =
+      pictogramasTemp[random.nextInt(pictogramasTemp.length)];
       if (candidato['nombre'] != _respuestaCorrecta) {
         opcionesIncorrectas.add(candidato['nombre']);
       }
@@ -119,40 +120,45 @@ class _AprenderScreenState extends State<AprenderScreen> {
       'cyan': Colors.lightBlue[200]!,
     };
 
-    return colorMap[name] ?? Colors.grey[300]!; // Default color
+    return colorMap[name] ?? Colors.grey[300]!;
   }
 
   Color _colorOpcion(int index, String opcion) {
+    final theme = Theme.of(context);
+
     if (!_respondido) {
       final colores = Session.selectedColors.value;
       return _getColor(colores[index % colores.length]);
     }
-    if (opcion == _respuestaCorrecta) return Colors.green[300]!;
+    if (opcion == _respuestaCorrecta) return Colors.green[400]!;
     if (opcion == _seleccion) return Colors.red[300]!;
-    return Colors.grey[300]!;
+    return theme.colorScheme.surfaceVariant;
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textColor = theme.textTheme.bodyLarge?.color;
+
     return Scaffold(
       drawer: const AppDrawer(),
-      backgroundColor: Colors.grey[100],
+      backgroundColor: theme.colorScheme.background,
       appBar: AppBar(
-        backgroundColor: Colors.grey[200], // Light grey background
+        backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
-        automaticallyImplyLeading: false, // Disable default back button
+        automaticallyImplyLeading: false,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
             Image.asset('lib/imagenes/logo.png', height: 40),
             const SizedBox(width: 10),
-            const Text(
+            Text(
               'PictoPlan',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
-                color: Colors.black87,
+                color: textColor,
               ),
             ),
           ],
@@ -160,7 +166,7 @@ class _AprenderScreenState extends State<AprenderScreen> {
         centerTitle: true,
         leading: Builder(
           builder: (context) => IconButton(
-            icon: const Icon(Icons.menu, color: Colors.black87, size: 30),
+            icon: Icon(Icons.menu, color: textColor, size: 30),
             onPressed: () => Scaffold.of(context).openDrawer(),
           ),
         ),
@@ -169,17 +175,29 @@ class _AprenderScreenState extends State<AprenderScreen> {
       body: Padding(
         padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 32),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             if (_imagenActual != null)
-              Image.memory(
-                _imagenActual!,
-                height: 180,
+              Container(
+                decoration: BoxDecoration(
+                  color: theme.cardColor,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: theme.shadowColor.withOpacity(0.05),
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Image.memory(
+                  _imagenActual!,
+                  height: 150,
+                  fit: BoxFit.contain,
+                ),
               ),
-            const SizedBox(height: 24),
-            SizedBox(
-              height: 200,
+            const SizedBox(height: 16),
+            Expanded(
               child: GridView.builder(
                 physics: const NeverScrollableScrollPhysics(),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -197,13 +215,26 @@ class _AprenderScreenState extends State<AprenderScreen> {
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       decoration: BoxDecoration(
                         color: _colorOpcion(index, opcion),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: theme.shadowColor.withOpacity(0.1),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
                       ),
                       child: Center(
                         child: Text(
                           opcion,
                           textAlign: TextAlign.center,
-                          style: const TextStyle(fontSize: 18),
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w600,
+                            color: theme.brightness == Brightness.dark
+                                ? Colors.white
+                                : Colors.black87,
+                          ),
                         ),
                       ),
                     ),

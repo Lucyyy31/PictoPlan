@@ -1,10 +1,15 @@
 import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../database_helper.dart';
+import '../notification_manager.dart';
+import '../session.dart';
 import 'add_pictogram.dart';
+// Asegúrate de importar estas dos clases según tu estructura
+// import '../session.dart';
+// import '../notification_manager.dart';
 
 class DatosTareaScreen extends StatefulWidget {
-  final int? tareaId; // null si es nueva tarea
+  final int? tareaId;
   final String tareaNombre;
   final String correoUsuario;
   final Function onTareaAgregada;
@@ -69,10 +74,9 @@ class _DatosTareaScreenState extends State<DatosTareaScreen> {
   }
 
   void _mostrarSelectorHora() {
-    // Obtener la hora y los minutos locales actuales
     DateTime now = DateTime.now();
-    int tempHora = now.hour;  // Obtener la hora local
-    int tempMinuto = now.minute;  // Obtener los minutos locales
+    int tempHora = now.hour;
+    int tempMinuto = now.minute;
 
     showModalBottomSheet(
       context: context,
@@ -116,7 +120,7 @@ class _DatosTareaScreenState extends State<DatosTareaScreen> {
                         _minuto = tempMinuto;
                         _horaController.text = '${_hora.toString().padLeft(2, '0')}:${_minuto.toString().padLeft(2, '0')}';
                       });
-                      Navigator.pop(context);  // Cerrar el modal
+                      Navigator.pop(context);
                     },
                     child: const Text('Confirmar'),
                   ),
@@ -179,6 +183,14 @@ class _DatosTareaScreenState extends State<DatosTareaScreen> {
       await _databaseHelper.insertRutina(datosTarea);
     } else {
       await _databaseHelper.updateRutina(widget.tareaId!, datosTarea);
+    }
+
+    // --- Notificación ---
+    if (Session.notifications.value) {
+      NotificationManager.addNotification(
+          'Tarea añadida',
+          'Se ha añadido la tarea "${_nombreController.text}" a la rutina.'
+      );
     }
 
     widget.onTareaAgregada();

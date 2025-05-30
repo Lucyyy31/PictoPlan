@@ -29,7 +29,6 @@ class _AddPictogramaScreenState extends State<AddPictogramaScreen> {
     });
   }
 
-  /// Mapea nombres de categoría a rutas de imagen.
   String obtenerRutaImagen(String categoria) {
     final mapaEspecial = {
       'mediosTransporte': 'mediostransporte.jpeg',
@@ -55,11 +54,16 @@ class _AddPictogramaScreenState extends State<AddPictogramaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Selecciona una categoría"),
-        backgroundColor: Colors.lightBlue[300],
+        backgroundColor: theme.appBarTheme.backgroundColor ?? (isDark ? Colors.grey[900] : Colors.blue[300]),
+        elevation: 1,
       ),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: categorias.isEmpty
           ? const Center(child: CircularProgressIndicator())
           : GridView.builder(
@@ -119,10 +123,10 @@ class _AddPictogramaScreenState extends State<AddPictogramaScreen> {
               child: Text(
                 categoria.toUpperCase(),
                 textAlign: TextAlign.center,
-                style: const TextStyle(
+                style: theme.textTheme.titleMedium?.copyWith(
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
-                  color: Colors.white,
                   letterSpacing: 1.2,
                 ),
               ),
