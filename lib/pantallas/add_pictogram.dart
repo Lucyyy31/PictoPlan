@@ -31,8 +31,8 @@ class _AddPictogramaScreenState extends State<AddPictogramaScreen> {
 // Función para obtener la ruta para las imagenes de las categorias
   String obtenerRutaImagen(String categoria) {
     final mapaEspecial = {
-      'mediosTransporte': 'mediostransporte.jpeg',
-      'partesCasa': 'partescasa.jpeg',
+      'mediosTransporte': 'mediosTransporte.jpeg',
+      'partesCasa': 'partesCasa.jpeg',
     };
 
     if (mapaEspecial.containsKey(categoria)) {
