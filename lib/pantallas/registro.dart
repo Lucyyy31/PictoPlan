@@ -17,20 +17,52 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   final DatabaseHelper dbHelper = DatabaseHelper();
 
+  bool mostrarContrasena = false;
+  bool mostrarRepetirContrasena = false;
+
+  // Estado de validaciones
+  bool tieneLongitud = false;
+  bool tieneMayuscula = false;
+  bool tieneMinuscula = false;
+  bool tieneNumero = false;
+  bool tieneEspecial = false;
+// Función para actualizar los valores de la contraseña a medida que se escribe
+  void _actualizarValidaciones(String contrasena) {
+    setState(() {
+      tieneLongitud = contrasena.length >= 8;
+      tieneMayuscula = contrasena.contains(RegExp(r'[A-Z]'));
+      tieneMinuscula = contrasena.contains(RegExp(r'[a-z]'));
+      tieneNumero = contrasena.contains(RegExp(r'\d'));
+      tieneEspecial = contrasena.contains(RegExp(r'[!@#\$%^&*(),.?":{}|<>]'));
+    });
+  }
+
+  bool _contrasenaValida() {
+    return tieneLongitud && tieneMayuscula && tieneMinuscula && tieneNumero && tieneEspecial;
+  }
+
+  void _mostrarMensaje(String mensaje) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensaje)));
+  }
+// Función para registrar un usuario
   void _registrarUsuario() async {
     String usuario = usuarioController.text.trim();
     String correo = correoController.text.trim();
     String contrasena = contrasenaController.text;
     String repetir = repetirContrasenaController.text;
 
-    if (usuario.isEmpty || correo.isEmpty || contrasena.isEmpty ||
-        repetir.isEmpty) {
+    if (usuario.isEmpty || correo.isEmpty || contrasena.isEmpty || repetir.isEmpty) {
       _mostrarMensaje('Completa todos los campos.');
       return;
     }
 
     if (contrasena != repetir) {
       _mostrarMensaje('Las contraseñas no coinciden.');
+      return;
+    }
+
+    if (!_contrasenaValida()) {
+      _mostrarMensaje('La contraseña no cumple con los requisitos.');
       return;
     }
 
@@ -41,18 +73,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
         'contrasena': contrasena,
       });
 
-      // ✅ Guardar el correo en la sesión
       Session.correoUsuario = correo;
-
-      // Llévalo a PerfilScreen
       Navigator.pushReplacementNamed(context, '/Rutina', arguments: correo);
     } catch (e) {
       _mostrarMensaje('Error al registrar: $e');
     }
   }
-
-    void _mostrarMensaje(String mensaje) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(mensaje)));
+// Vista de la pantalla
+  Widget _validacionItem(bool condicion, String texto) {
+    return Row(
+      children: [
+        Icon(condicion ? Icons.check_circle : Icons.cancel, color: condicion ? Colors.green : Colors.red, size: 18),
+        const SizedBox(width: 8),
+        Text(texto, style: TextStyle(color: condicion ? Colors.green : Colors.red)),
+      ],
+    );
   }
 
   @override
@@ -73,9 +108,48 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 12),
               TextField(controller: correoController, decoration: const InputDecoration(labelText: 'Correo electrónico')),
               const SizedBox(height: 12),
-              TextField(controller: contrasenaController, obscureText: true, decoration: const InputDecoration(labelText: 'Contraseña')),
+
+              // Contraseña
+              TextField(
+                controller: contrasenaController,
+                obscureText: !mostrarContrasena,
+                onChanged: _actualizarValidaciones,
+                decoration: InputDecoration(
+                  labelText: 'Contraseña',
+                  suffixIcon: IconButton(
+                    icon: Icon(mostrarContrasena ? Icons.visibility_off : Icons.visibility),
+                    onPressed: () => setState(() => mostrarContrasena = !mostrarContrasena),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+
+              // Reglas de contraseña
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _validacionItem(tieneLongitud, 'Al menos 8 caracteres'),
+                  _validacionItem(tieneMayuscula, 'Al menos una letra mayúscula'),
+                  _validacionItem(tieneMinuscula, 'Al menos una letra minúscula'),
+                  _validacionItem(tieneNumero, 'Al menos un número'),
+                  _validacionItem(tieneEspecial, 'Al menos un carácter especial'),
+                ],
+              ),
               const SizedBox(height: 12),
-              TextField(controller: repetirContrasenaController, obscureText: true, decoration: const InputDecoration(labelText: 'Repetir contraseña')),
+
+              // Repetir contraseña
+              TextField(
+                controller: repetirContrasenaController,
+                obscureText: !mostrarRepetirContrasena,
+                decoration: InputDecoration(
+                  labelText: 'Repetir contraseña',
+                  suffixIcon: IconButton(
+                    icon: Icon(mostrarRepetirContrasena ? Icons.visibility_off : Icons.visibility),
+                    onPressed: () => setState(() => mostrarRepetirContrasena = !mostrarRepetirContrasena),
+                  ),
+                ),
+              ),
+
               const SizedBox(height: 30),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(

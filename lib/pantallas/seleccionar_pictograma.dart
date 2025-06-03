@@ -25,7 +25,7 @@ class _SelectPictogramScreenState extends State<SelectPictogramScreen> {
     super.initState();
     cargarPictogramas();
   }
-
+// Función para cargar los pictogramas de una categoria concreta
   Future<void> cargarPictogramas() async {
     final db = await DatabaseHelper().database;
     final resultado = await db.query(
@@ -38,7 +38,7 @@ class _SelectPictogramScreenState extends State<SelectPictogramScreen> {
       pictogramas = resultado;
     });
   }
-
+// Popup para cancelar o aceptar el pictograma seleccionado
   Future<void> _confirmarSeleccion(Map<String, dynamic> pictograma) async {
     final confirmado = await showDialog<bool>(
       context: context,
@@ -62,7 +62,7 @@ class _SelectPictogramScreenState extends State<SelectPictogramScreen> {
       Navigator.of(context).pop({'pictograma': pictograma});
     }
   }
-
+// Vista de la interfaz
   @override
   Widget build(BuildContext context) {
     return Scaffold(

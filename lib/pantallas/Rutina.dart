@@ -24,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
     _databaseHelper = DatabaseHelper();
     _loadUserRutinas();
   }
-
+// Función para cargar la rutina de un usuario
   Future<void> _loadUserRutinas() async {
     String correoUsuario = Session.correoUsuario;
 
@@ -64,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
       });
     }
   }
-
+// Obtener la fecha en el formato correcto para guardarlo
   String _getFormattedDate() {
     final now = DateTime.now();
     final day = now.day.toString().padLeft(2, '0');
@@ -72,7 +72,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final year = now.year.toString();
     return '$day-$month-$year';
   }
-
+// FUnción para obtener los pictogramas por ID
   Future<Map<String, dynamic>> _getPictogramaById(int id) async {
     final pictogramaData = await _databaseHelper.getPictogramaById(id);
     return pictogramaData.isNotEmpty ? pictogramaData.first : {};
@@ -98,7 +98,7 @@ class _HomeScreenState extends State<HomeScreen> {
       child: child,
     );
   }
-
+// Vista de la interfaz
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -189,39 +189,45 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         )
             : Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Rutina del día',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            _styledContainer(
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  backgroundColor: Theme.of(context).cardColor,
-                  foregroundColor: Theme.of(context).colorScheme.onSurface,
-                  elevation: 0,
-                ),
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => DatosTareaScreen(
-                        tareaNombre: '',
-                        correoUsuario: Session.correoUsuario,
-                        onTareaAgregada: _loadUserRutinas,
+            Center(
+              child: Column(
+                children: [
+                  Text(
+                    'Rutina del día',
+                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  _styledContainer(
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        backgroundColor: Theme.of(context).cardColor,
+                        foregroundColor: Theme.of(context).colorScheme.onSurface,
+                        elevation: 0,
+                      ),
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => DatosTareaScreen(
+                              tareaNombre: '',
+                              correoUsuario: Session.correoUsuario,
+                              onTareaAgregada: _loadUserRutinas,
+                            ),
+                          ),
+                        );
+                      },
+                      icon: const Icon(Icons.add),
+                      label: const Text(
+                        'Añadir tarea',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                       ),
                     ),
-                  );
-                },
-                icon: const Icon(Icons.add),
-                label: const Text(
-                  'Añadir tarea',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(height: 30),

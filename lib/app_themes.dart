@@ -1,6 +1,6 @@
 // lib/app_themes.dart
 import 'package:flutter/material.dart';
-
+// Clase para marcar los temas y por hacer modo oscuro o modo claro
 class AppThemes {
   static final lightTheme = ThemeData(
     brightness: Brightness.light,

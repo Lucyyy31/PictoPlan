@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'database_helper.dart';
-import 'lista_pictogramas.dart'; // Asegúrate de que este archivo existe y está bien formado
+import 'lista_pictogramas.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -9,12 +9,11 @@ void main() async {
 
   try {
     await dbHelper.insertAllPictogramas(pictogramas);
-    print('✅ Pictogramas insertados correctamente.');
+    print('Pictogramas insertados correctamente.');
   } catch (e) {
-    print('❌ Error al insertar pictogramas: $e');
+    print('Error al insertar pictogramas: $e');
   }
 
-  // Para que la app se cierre inmediatamente o no haga nada más
   runApp(const PlaceholderWidget());
 }
 

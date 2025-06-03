@@ -4,9 +4,6 @@ import '../database_helper.dart';
 import '../notification_manager.dart';
 import '../session.dart';
 import 'add_pictogram.dart';
-// Asegúrate de importar estas dos clases según tu estructura
-// import '../session.dart';
-// import '../notification_manager.dart';
 
 class DatosTareaScreen extends StatefulWidget {
   final int? tareaId;
@@ -49,7 +46,7 @@ class _DatosTareaScreenState extends State<DatosTareaScreen> {
       _cargarDatosTarea(widget.tareaId!);
     }
   }
-
+// Función para cargar una tarea desde la base de datos
   Future<void> _cargarDatosTarea(int tareaId) async {
     final tarea = await _databaseHelper.getTareaById(tareaId);
     if (tarea != null) {
@@ -72,15 +69,17 @@ class _DatosTareaScreenState extends State<DatosTareaScreen> {
     _horaController.dispose();
     super.dispose();
   }
-
+// Función para seleccionar la hora
   void _mostrarSelectorHora() {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
     DateTime now = DateTime.now();
     int tempHora = now.hour;
     int tempMinuto = now.minute;
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: colorScheme.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(25)),
       ),
@@ -92,7 +91,7 @@ class _DatosTareaScreenState extends State<DatosTareaScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Text('Selecciona la hora', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                  Text('Selecciona la hora', style: theme.textTheme.titleMedium),
                   const SizedBox(height: 20),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -132,20 +131,29 @@ class _DatosTareaScreenState extends State<DatosTareaScreen> {
       },
     );
   }
-
+// Estética de la pantalla
   Widget _buildTimeColumn({
     required String label,
     required int value,
     required VoidCallback onIncrement,
     required VoidCallback onDecrement,
   }) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Column(
       children: [
         IconButton(icon: const Icon(Icons.keyboard_arrow_up, size: 30), onPressed: onIncrement),
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(color: Colors.grey[200], borderRadius: BorderRadius.circular(12)),
-          child: Text(value.toString().padLeft(2, '0'), style: const TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+          decoration: BoxDecoration(
+            color: colorScheme.surfaceVariant,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            value.toString().padLeft(2, '0'),
+            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
         ),
         IconButton(icon: const Icon(Icons.keyboard_arrow_down, size: 30), onPressed: onDecrement),
         const SizedBox(height: 6),
@@ -153,7 +161,7 @@ class _DatosTareaScreenState extends State<DatosTareaScreen> {
       ],
     );
   }
-
+ // Función para guardar una tarea
   void _guardarTarea() async {
     if (_nombreController.text.isEmpty || _horaController.text.isEmpty || _selectedPictogramaId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -185,34 +193,31 @@ class _DatosTareaScreenState extends State<DatosTareaScreen> {
       await _databaseHelper.updateRutina(widget.tareaId!, datosTarea);
     }
 
-    // --- Notificación ---
     if (Session.notifications.value) {
       NotificationManager.addNotification(
-          'Tarea añadida',
-          'Se ha añadido la tarea "${_nombreController.text}" a la rutina.'
+        'Tarea añadida',
+        'Se ha añadido la tarea "${_nombreController.text}" a la rutina.',
       );
     }
 
     widget.onTareaAgregada();
-    if (mounted) {
-      Navigator.pop(context);
-    }
+    if (mounted) Navigator.pop(context);
   }
-
+// Vista al editar una tarea
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: Colors.grey[100],
+      backgroundColor: colorScheme.background,
       appBar: AppBar(
-        backgroundColor: Colors.grey[300],
+        backgroundColor: colorScheme.surface,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.black),
-          onPressed: () => Navigator.pop(context),
-        ),
+        iconTheme: IconThemeData(color: colorScheme.onSurface),
         title: Text(
           widget.tareaId == null ? 'Nueva tarea' : 'Editar tarea',
-          style: const TextStyle(color: Colors.black, fontSize: 22, fontWeight: FontWeight.bold),
+          style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
@@ -229,11 +234,11 @@ class _DatosTareaScreenState extends State<DatosTareaScreen> {
                   );
 
                   if (result != null && result['pictograma'] != null) {
-                    final pictogramaSeleccionado = result['pictograma'];
+                    final pictograma = result['pictograma'];
                     setState(() {
-                      _selectedPictogramaId = pictogramaSeleccionado['id'].toString();
-                      _selectedPictogramaNombre = pictogramaSeleccionado['nombre'];
-                      _selectedPictogramaImagen = pictogramaSeleccionado['imagen'];
+                      _selectedPictogramaId = pictograma['id'].toString();
+                      _selectedPictogramaNombre = pictograma['nombre'];
+                      _selectedPictogramaImagen = pictograma['imagen'];
                     });
                   }
                 },
@@ -241,7 +246,7 @@ class _DatosTareaScreenState extends State<DatosTareaScreen> {
                   width: 140,
                   height: 140,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: colorScheme.surfaceVariant,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   alignment: Alignment.center,
@@ -250,19 +255,19 @@ class _DatosTareaScreenState extends State<DatosTareaScreen> {
                     borderRadius: BorderRadius.circular(20),
                     child: Image.memory(_selectedPictogramaImagen!, fit: BoxFit.cover),
                   )
-                      : const Icon(Icons.image, size: 60, color: Colors.white),
+                      : Icon(Icons.image, size: 60, color: colorScheme.onSurfaceVariant),
                 ),
               ),
               const SizedBox(height: 10),
               if (_selectedPictogramaNombre != null)
-                Text(_selectedPictogramaNombre!, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                Text(_selectedPictogramaNombre!, style: theme.textTheme.bodyLarge),
               const SizedBox(height: 30),
               TextField(
                 controller: _nombreController,
                 decoration: InputDecoration(
                   labelText: 'Nombre de la tarea',
                   filled: true,
-                  fillColor: Colors.white,
+                  fillColor: colorScheme.surfaceVariant,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(20),
                     borderSide: BorderSide.none,
@@ -276,17 +281,17 @@ class _DatosTareaScreenState extends State<DatosTareaScreen> {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: colorScheme.surfaceVariant,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.grey.shade300),
+                    border: Border.all(color: colorScheme.outlineVariant),
                   ),
                   child: Row(
                     children: [
-                      const Icon(Icons.access_time, color: Colors.blue),
+                      Icon(Icons.access_time, color: colorScheme.primary),
                       const SizedBox(width: 10),
                       Text(
                         _horaController.text.isEmpty ? 'Selecciona una hora' : _horaController.text,
-                        style: const TextStyle(fontSize: 16),
+                        style: theme.textTheme.bodyLarge,
                       ),
                     ],
                   ),
@@ -296,8 +301,8 @@ class _DatosTareaScreenState extends State<DatosTareaScreen> {
               ElevatedButton(
                 onPressed: _guardarTarea,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: colorScheme.onPrimary,
                   padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 16),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                 ),

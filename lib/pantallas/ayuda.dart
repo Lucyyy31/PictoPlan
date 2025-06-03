@@ -3,27 +3,32 @@ import 'package:flutter/material.dart';
 class AyudaScreen extends StatelessWidget {
   const AyudaScreen({super.key});
 
-  // Método para el Popup de contacto
+  // Popup de contacto
   void _mostrarPopupContacto(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text("Atención al Cliente"),
+          backgroundColor: colorScheme.surface,
+          title: Text(
+            "Atención al Cliente",
+            style: theme.textTheme.titleLarge,
+          ),
           content: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
-            children: const [
-              Text("Correo: ayuda@tusitio.com"),
-              Text("Teléfono: +123456789"),
+            children: [
+              Text("Correo: ayuda@tusitio.com", style: theme.textTheme.bodyMedium),
+              Text("Teléfono: +123456789", style: theme.textTheme.bodyMedium),
             ],
           ),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: const Text('Cerrar'),
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Cerrar', style: TextStyle(color: colorScheme.primary)),
             ),
           ],
         );
@@ -31,67 +36,91 @@ class AyudaScreen extends StatelessWidget {
     );
   }
 
-  // Método para construir la guía de funcionalidades
-  Widget _guiaDeFunciones() {
+  // Guía de funcionalidades
+  Widget _guiaDeFunciones(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       children: [
         ListTile(
-          leading: const Icon(Icons.check),
-          title: const Text('Rutinas Diarias'),
-          subtitle: const Text(
-              'Crea rutinas diarias para los niños, añade tareas, asigna pictogramas y horas, y edítalas o elimínalas.'),
+          leading: Icon(Icons.check, color: theme.iconTheme.color),
+          title: Text('Rutinas Diarias', style: theme.textTheme.titleMedium),
+          subtitle: Text(
+            'Crea rutinas diarias para los niños, añade tareas, asigna pictogramas y horas, y edítalas o elimínalas.',
+            style: theme.textTheme.bodyMedium,
+          ),
         ),
         ListTile(
-          leading: const Icon(Icons.event_note),
-          title: const Text('Diario de Experiencias'),
-          subtitle: const Text(
-              'Registra los eventos y experiencias diarias. Puedes añadir pictogramas relacionados con los momentos y editarlos más tarde.'),
+          leading: Icon(Icons.event_note, color: theme.iconTheme.color),
+          title: Text('Diario de Experiencias', style: theme.textTheme.titleMedium),
+          subtitle: Text(
+            'Registra los eventos y experiencias diarias. Puedes añadir pictogramas relacionados con los momentos y editarlos más tarde.',
+            style: theme.textTheme.bodyMedium,
+          ),
         ),
         ListTile(
-          leading: const Icon(Icons.quiz),
-          title: const Text('Aprender - Quiz'),
-          subtitle: const Text(
-              'Relaciona imágenes con palabras y selecciona la respuesta correcta. Puedes modificar los temas en configuración.'),
+          leading: Icon(Icons.quiz, color: theme.iconTheme.color),
+          title: Text('Aprender - Quiz', style: theme.textTheme.titleMedium),
+          subtitle: Text(
+            'Relaciona imágenes con palabras y selecciona la respuesta correcta. Puedes modificar los temas en configuración.',
+            style: theme.textTheme.bodyMedium,
+          ),
         ),
         ListTile(
-          leading: const Icon(Icons.settings),
-          title: const Text('Configuración'),
-          subtitle: const Text(
-              'Cambia el tema del quiz (objetos, sentimientos o general) desde la configuración.'),
+          leading: Icon(Icons.settings, color: theme.iconTheme.color),
+          title: Text('Configuración', style: theme.textTheme.titleMedium),
+          subtitle: Text(
+            'Cambia el tema del quiz (objetos, sentimientos o general) desde la configuración.',
+            style: theme.textTheme.bodyMedium,
+          ),
         ),
       ],
     );
   }
-
+// Vista de la pantalla
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Ayuda'),
+        backgroundColor: colorScheme.surface,
+        iconTheme: IconThemeData(color: colorScheme.onSurface),
+        elevation: 1,
+        title: Text(
+          'Ayuda',
+          style: theme.textTheme.titleLarge?.copyWith(
+            color: colorScheme.onSurface,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
-      body: SingleChildScrollView( // Hacemos que la pantalla sea desplazable
-        padding: const EdgeInsets.all(16.0),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 30),
-            const Text(
+            const SizedBox(height: 20),
+            Text(
               '¿En qué podemos ayudarte?',
-              style: TextStyle(fontSize: 18),
+              style: theme.textTheme.titleMedium,
             ),
             const SizedBox(height: 20),
-            _guiaDeFunciones(), // Mostrar la guía de funciones
+            _guiaDeFunciones(context),
             const SizedBox(height: 20),
-            // Centramos el botón y lo hacemos más grande
             Center(
               child: ElevatedButton(
+                onPressed: () => _mostrarPopupContacto(context),
                 style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(200, 60), // Tamaño más grande
-                  textStyle: const TextStyle(fontSize: 20), // Aumentar tamaño del texto
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: colorScheme.onPrimary,
+                  minimumSize: const Size(200, 56),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  textStyle: const TextStyle(fontSize: 16),
                 ),
-                onPressed: () {
-                  _mostrarPopupContacto(context); // Mostrar el popup de contacto al pulsar "Buscar Ayuda"
-                },
                 child: const Text('BUSCAR AYUDA'),
               ),
             ),

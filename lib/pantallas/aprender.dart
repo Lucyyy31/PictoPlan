@@ -26,7 +26,7 @@ class _AprenderScreenState extends State<AprenderScreen> {
     super.initState();
     _cargarQuiz();
   }
-
+// Función para cargar el quiz, de forma predeterminada sale el tipo de General
   Future<void> _cargarQuiz() async {
     String learningType = Session.learningType;
     List<Map<String, dynamic>> pictogramasTemp = [];
@@ -76,7 +76,7 @@ class _AprenderScreenState extends State<AprenderScreen> {
       _respondido = false;
     });
   }
-
+// Función para seleccionar la opcion
   void _seleccionarOpcion(String opcion) {
     setState(() {
       _seleccion = opcion;
@@ -107,13 +107,13 @@ class _AprenderScreenState extends State<AprenderScreen> {
       );
     });
   }
-
+// Colores de las opciones
   Color _getColor(String name) {
     final Map<String, Color> colorMap = {
-      'rosa': Colors.pink[200]!,
-      'amarillo': Colors.yellow[300]!,
-      'verde': Colors.green[300]!,
-      'azul': Colors.blue[300]!,
+      'rosa': Colors.pink[100]!,
+      'amarillo': Colors.amber[200]!,
+      'verde': Colors.green[100]!,
+      'azul': Colors.blue[100]!,
       'lila': Colors.purple[200]!,
       'naranja': Colors.orange[200]!,
       'marron': Colors.brown[200]!,
@@ -134,7 +134,7 @@ class _AprenderScreenState extends State<AprenderScreen> {
     if (opcion == _seleccion) return Colors.red[300]!;
     return theme.colorScheme.surfaceVariant;
   }
-
+// Vista de la aplicación
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);

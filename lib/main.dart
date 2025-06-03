@@ -32,13 +32,13 @@ void main() async {
     try {
       final dbHelper = DatabaseHelper();
       await dbHelper.insertAllPictogramas(pictogramas);
-      print('✅ Pictogramas insertados correctamente.');
+      print('Pictogramas insertados correctamente.');
       await prefs.setBool('pictogramas_cargados', true);
     } catch (e) {
-      print('❌ Error al insertar pictogramas: $e');
+      print('Error al insertar pictogramas: $e');
     }
   } else {
-    print('ℹ️ Pictogramas ya estaban cargados.');
+    print('ℹPictogramas ya cargados.');
   }
 
   runApp(const PictoPlanApp());
@@ -80,7 +80,7 @@ class PictoPlanApp extends StatelessWidget {
           ],
           supportedLocales: const [
             Locale('es', ''), // Español
-            Locale('en', ''), // Inglés u otros si necesitas
+            Locale('en', ''), // Inglés
           ],
         );
       },

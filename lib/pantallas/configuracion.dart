@@ -10,7 +10,7 @@ class ConfiguracionScreen extends StatefulWidget {
 
 class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
   bool notifications = Session.notifications.value;
-
+// Listado de colores
   final List<String> coloresDisponibles = [
     'rosa',
     'amarillo',
@@ -21,18 +21,18 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
     'marron',
     'cyan',
   ];
-
+// Colores posibles a seleccionar
   final Map<String, Color> colorMap = {
-    'rosa': Colors.pink[200]!,
-    'amarillo': Colors.yellow[300]!,
-    'verde': Colors.green[300]!,
-    'azul': Colors.blue[300]!,
-    'lila': Colors.purple[200]!,
-    'naranja': Colors.orange[200]!,
-    'marron': Colors.brown[200]!,
-    'cyan': Colors.lightBlue[200]!,
+    'rosa': Colors.pink[100]!,
+    'amarillo': Colors.amber[200]!,
+    'verde': Colors.green[100]!,
+    'azul': Colors.blue[100]!,
+    'lila': Colors.purple[100]!,
+    'naranja': Colors.orange[100]!,
+    'marron': Colors.brown[100]!,
+    'cyan': Colors.lightBlue[100]!,
   };
-
+// Vista de la pantalla
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
@@ -64,6 +64,7 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                 },
                 isDark,
               ),
+              /*
               _buildCheckbox(
                 'Notificaciones',
                 isDark,
@@ -76,6 +77,8 @@ class _ConfiguracionScreenState extends State<ConfiguracionScreen> {
                 },
                 isDark,
               ),
+
+               */
               const SizedBox(height: 16),
               Text(
                 'Colores para aprender (elige 4)',

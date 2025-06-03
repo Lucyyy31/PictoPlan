@@ -17,7 +17,7 @@ class _AddPictogramaScreenState extends State<AddPictogramaScreen> {
     super.initState();
     cargarCategorias();
   }
-
+// Función para cargar los pictogramas de la BBDD
   Future<void> cargarCategorias() async {
     final db = await DatabaseHelper().database;
     final List<Map<String, dynamic>> resultados =
@@ -28,7 +28,7 @@ class _AddPictogramaScreenState extends State<AddPictogramaScreen> {
           resultados.map((fila) => fila['categoria'] as String).toList();
     });
   }
-
+// Función para obtener la ruta para las imagenes de las categorias
   String obtenerRutaImagen(String categoria) {
     final mapaEspecial = {
       'mediosTransporte': 'mediostransporte.jpeg',
@@ -51,16 +51,23 @@ class _AddPictogramaScreenState extends State<AddPictogramaScreen> {
 
     return 'assets/imagenes_categorias/$nombreArchivo.jpeg';
   }
-
+  // Vista de la interfaz
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final colorScheme = theme.colorScheme;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Selecciona una categoría"),
-        backgroundColor: theme.appBarTheme.backgroundColor ?? (isDark ? Colors.grey[900] : Colors.blue[300]),
+        title: Text(
+          "Selecciona una categoría",
+          style: theme.textTheme.titleLarge?.copyWith(
+            color: colorScheme.onPrimary,
+          ),
+        ),
+        backgroundColor: colorScheme.primary,
+        iconTheme: IconThemeData(color: colorScheme.onPrimary),
         elevation: 1,
       ),
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -106,7 +113,9 @@ class _AddPictogramaScreenState extends State<AddPictogramaScreen> {
                   image: AssetImage(imagenRuta),
                   fit: BoxFit.cover,
                   colorFilter: ColorFilter.mode(
-                    Colors.black.withOpacity(0.4),
+                    isDark
+                        ? Colors.black.withOpacity(0.5)
+                        : Colors.white.withOpacity(0.3),
                     BlendMode.darken,
                   ),
                 ),
